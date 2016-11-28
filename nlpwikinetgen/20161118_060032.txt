@@ -1,0 +1,2 @@
+"Date/Time","Total Memory","Free Memory","Message"
+"2016.11.18 06:00:32","257425408","235936520","Not all necessary source files could be found in /Users/Tobias/Master/MA/Dumps/dewiki/"
