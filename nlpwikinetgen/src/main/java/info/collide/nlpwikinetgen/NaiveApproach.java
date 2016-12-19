@@ -1,11 +1,26 @@
 package info.collide.nlpwikinetgen;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.Collection;
+
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.Version;
+
 import java.util.*;
 
 import de.tudarmstadt.ukp.wikipedia.api.*;
@@ -27,13 +42,19 @@ public class NaiveApproach implements WikiConstants {
         dbConfig.setUser("Tobias");
         dbConfig.setPassword("");
         dbConfig.setLanguage(Language.german);
+        
+        //set lucene config
+        Directory directory = FSDirectory.open(new File(System.getProperty("user.dir")+"/output").toPath());
+        Analyzer analyzer = new StandardAnalyzer();
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        IndexWriter indexWriter = new IndexWriter(directory , config);
 
         // Create a new German wikipedia.
         Wikipedia wiki = new Wikipedia(dbConfig);
         RevisionIterator revIt = new RevisionIterator(dbConfig) ;
         RevisionApi revApi = new RevisionApi(dbConfig) ;
 
-
+        // Select category
         String title = "Fachbereich_Informatik";
         Category cat;
         
@@ -66,6 +87,8 @@ public class NaiveApproach implements WikiConstants {
 	        		}
 	        		prevId = concatId;
 	        		System.out.println("\nVertex: "+concatId+"++"+name+"++"+major);
+	        		
+	        		indexDocument(indexWriter, name, revisionId, rev.getRevisionText());
 	        	}
         	}
         	pageCount++;
@@ -132,6 +155,22 @@ public class NaiveApproach implements WikiConstants {
         
         writer.flush();
         writer.close();
+    }
+    
+    static void indexDocument(IndexWriter writer, String title, int revision, String content) throws IOException {
+    	Document doc = new Document();
+    	
+    	Field name = new StoredField("title", title);
+    	doc.add(name);
+    	
+    	Field revId = new StoredField("RevisionID", revision);
+    	doc.add(revId);
+    	
+    	Field article = new TextField("Content", content, Store.YES);
+    	doc.add(article);
+    	
+    	writer.addDocument(doc);
+    	
     }
     
     public void writePajek(List<Vertex> vertices, List<StringPair> arcs) throws IOException {

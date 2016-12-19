@@ -1,3 +1,0 @@
-"Date/Time","Total Memory","Free Memory","Message"
-"2016.11.18 02:27:32","257425408","235921816",". is not a directory. Continue read from /Users/Tobias/Master/MA/Code/nlpwikinetgen/."
-"2016.11.18 02:27:32","257425408","235921816","Not all necessary source files could be found in ~/Master/MA/Dumps/dewikiversity/"
