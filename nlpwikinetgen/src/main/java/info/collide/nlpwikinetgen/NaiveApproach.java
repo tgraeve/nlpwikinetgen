@@ -37,10 +37,10 @@ public class NaiveApproach implements WikiConstants {
 
         // configure the database connection parameters
         DatabaseConfiguration dbConfig = new DatabaseConfiguration();
-        dbConfig.setHost("localhost");
-        dbConfig.setDatabase("dewikiversity20161101");
-        dbConfig.setUser("Tobias");
-        dbConfig.setPassword("");
+        dbConfig.setHost("134.91.20.26");
+        dbConfig.setDatabase("wiki_20161101");
+        dbConfig.setUser("tobias");
+        dbConfig.setPassword("shaggy");
         dbConfig.setLanguage(Language.german);
         
         //set lucene config
@@ -55,7 +55,7 @@ public class NaiveApproach implements WikiConstants {
         RevisionApi revApi = new RevisionApi(dbConfig) ;
 
         // Select category
-        String title = "Fachbereich_Informatik";
+        String title = "Bier_als_Thema";
         Category cat;
         
         try {
@@ -69,8 +69,8 @@ public class NaiveApproach implements WikiConstants {
         int pageCount = 0;
         
         for(Page page : cat.getArticles()) {
-        	String prevId = null;
-        	String pageId = new DecimalFormat("000000000000").format(pageCount);
+        	int prevId = -1;
+//        	String pageId = new DecimalFormat("000000000000").format(pageCount); //no need for own id, revisionID is unique
         	String name = page.getTitle().toString();
         	//Get all revisions for the article
         	Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(page.getPageId());
@@ -79,14 +79,13 @@ public class NaiveApproach implements WikiConstants {
 	        		Revision rev = revApi.getRevision(page.getPageId(), t);
 	        		int revisionId = rev.getRevisionID();
 	        		boolean major = !rev.isMinor();
-	        		String concatId = pageId + "" + revisionId;
-	        		vertices.add(new Vertex(concatId,name, major));
+	        		vertices.add(new Vertex(revisionId,name, major,rev.byteSize()));
 	        		System.out.println(rev.getRevisionText());
-	        		if(prevId!=null) {
-	        			arcs.add(new StringPair(prevId,concatId));
+	        		if(prevId!=-1) {
+	        			arcs.add(new StringPair(prevId,revisionId));
 	        		}
-	        		prevId = concatId;
-	        		System.out.println("\nVertex: "+concatId+"++"+name+"++"+major);
+	        		prevId = revisionId;
+	        		System.out.println("\nVertex: "+revisionId+"++"+name+"++"+major+"++"+rev.byteSize());
 	        		
 	        		indexDocument(indexWriter, name, revisionId, rev.getRevisionText());
 	        	}
@@ -138,6 +137,8 @@ public class NaiveApproach implements WikiConstants {
             writer.write("\t\tlabel \""+v.getName()+"\"");
             writer.newLine();
             writer.write("\t\tisMajorEdit \""+v.isFlagged()+"\"");
+            writer.newLine();
+            writer.write("\t\tbyteLoad \""+v.getChangeLoad()+"\"");
             writer.newLine();
             writer.write("\t]");
             writer.newLine();
@@ -203,17 +204,19 @@ public class NaiveApproach implements WikiConstants {
     }
     
     static class Vertex {
-    	String Id;
+    	int Id;
     	String name;
     	boolean flag;
+    	long changeLoad;
     	
-    	public Vertex (String Id, String name, boolean flag) {
+    	public Vertex (int Id, String name, boolean flag, long changeLoad) {
     		this.Id = Id;
     		this.name = name;
     		this.flag = flag;
+    		this.changeLoad = changeLoad;
     	}
     	
-    	public String getId() {
+    	public int getId() {
     		return Id;
     	}
     	
@@ -224,24 +227,28 @@ public class NaiveApproach implements WikiConstants {
     	public boolean isFlagged() {
     		return flag;
     	}
+    	
+    	public long getChangeLoad() {
+    		return changeLoad;
+    	}
     }
     
     static class StringPair {
 
-        String source;
+        int source;
 
-        String destination;
+        int destination;
 
-        public StringPair(String source, String destination) {
+        public StringPair(int source, int destination) {
             this.source = source;
             this.destination = destination;
         }
 
-        public String getSource() {
+        public int getSource() {
             return source;
         }
 
-        public String getDestination() {
+        public int getDestination() {
             return destination;
         }
         
@@ -249,7 +256,7 @@ public class NaiveApproach implements WikiConstants {
             boolean equals = false;
             if (o instanceof StringPair) {
                  StringPair sp = (StringPair) o;
-                 if (getSource().equals(sp.getSource()) && getDestination().equals(sp.getDestination())) {
+                 if (getSource()==sp.getSource() && getDestination()==sp.getDestination()) {
                      equals = true;
                  }
             }
