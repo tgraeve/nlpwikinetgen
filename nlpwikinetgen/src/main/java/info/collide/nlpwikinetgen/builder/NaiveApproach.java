@@ -1,4 +1,4 @@
-package info.collide.nlpwikinetgen;
+package info.collide.nlpwikinetgen.builder;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,7 +40,7 @@ public class NaiveApproach implements WikiConstants {
         dbConfig.setHost("134.91.20.26");
         dbConfig.setDatabase("wiki_20161101");
         dbConfig.setUser("tobias");
-        dbConfig.setPassword("shaggy");
+        dbConfig.setPassword("password");
         dbConfig.setLanguage(Language.german);
         
         //set lucene config
