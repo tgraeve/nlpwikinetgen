@@ -2,12 +2,14 @@ package info.collide.nlpwikinetgen.helper;
 
 public class Vertex {
 	int Id;
+	int pageId;
 	String name;
 	boolean flag;
 	long changeLoad;
 	
-	public Vertex (int Id, String name, boolean flag, long changeLoad) {
+	public Vertex (int Id, int pageId, String name, boolean flag, long changeLoad) {
 		this.Id = Id;
+		this.pageId = pageId;
 		this.name = name;
 		this.flag = flag;
 		this.changeLoad = changeLoad;
@@ -15,6 +17,10 @@ public class Vertex {
 	
 	public int getId() {
 		return Id;
+	}
+	
+	public int getPageId() {
+		return pageId;
 	}
 	
 	public String getName() {

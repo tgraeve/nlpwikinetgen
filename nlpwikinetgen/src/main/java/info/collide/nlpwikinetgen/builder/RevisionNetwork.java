@@ -46,6 +46,8 @@ public class RevisionNetwork {
         // initiate GMLWriter
         GMLWriter writer = new GMLWriter(System.getProperty("user.dir")+"/output/complete_dag_Bier.gml");
         
+        
+        //testing if category exists
         try {
             cat = wiki.getCategory(title);
         } catch (WikiPageNotFoundException e) {
@@ -55,24 +57,27 @@ public class RevisionNetwork {
         List<Vertex> vertices = new ArrayList<Vertex>();
         List<StringPair> arcs = new ArrayList<StringPair>();
         Set<Integer> knownArticles = cat.getArticleIds();
-
+        
+        //iterating over all pages included in given category
         for(Page page : cat.getArticles()) {
         	int prevId = -1;
         	String name = page.getTitle().toString();
         	List<String> linkList = new LinkedList<String>();
+        	int pageId = page.getPageId();
         	
         	//Get all revisions of the article
         	Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(page.getPageId());
         	if(!revisionTimeStamps.isEmpty()) {
         		
 	        	for(Timestamp t : revisionTimeStamps) {
-	        		Revision rev = revApi.getRevision(page.getPageId(), t);
+	        		Revision rev = revApi.getRevision(pageId, t);
 	        		int revisionId = rev.getRevisionID();
 	        		String text = rev.getRevisionText();
 	        		boolean major = !rev.isMinor();
 	        		int length = text.length();
+	        		
         			// add basic vertex for revision
-	        		vertices.add(new Vertex(revisionId,name, major,length));
+	        		vertices.add(new Vertex(revisionId, pageId, name, major,length));
 	        		
 	        		System.out.println("\nVertex: "+revisionId+"++"+name+"++"+major+"++"+length);
 	        		
@@ -114,7 +119,6 @@ public class RevisionNetwork {
         }
         
         writer.writeFile(vertices, arcs);
-
 	}
 	
 	/**
