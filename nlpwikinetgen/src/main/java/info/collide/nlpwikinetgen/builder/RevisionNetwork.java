@@ -55,7 +55,7 @@ public class RevisionNetwork {
         }
         
         List<Vertex> vertices = new ArrayList<Vertex>();
-        List<StringPair> arcs = new ArrayList<StringPair>();
+        List<Edge> arcs = new ArrayList<Edge>();
         Set<Integer> knownArticles = cat.getArticleIds();
         
         //iterating over all pages included in given category
@@ -83,7 +83,7 @@ public class RevisionNetwork {
 	        		
 	        		// add basic arcs between revisions of same page
 	        		if(prevId!=-1) {
-	        			arcs.add(new StringPair(prevId,revisionId));
+	        			arcs.add(new Edge("revision", prevId,revisionId));
 	        		}
 	        		prevId = revisionId;
 	        		
@@ -101,7 +101,7 @@ public class RevisionNetwork {
 				        			if(knownArticles.contains(targetPageId)) {
 				        				List<Timestamp> ts = revApi.getRevisionTimestampsBetweenTimestamps(targetPageId, revApi.getFirstDateOfAppearance(targetPageId), t);
 					        			if(ts.size() > 0) {
-						        			arcs.add(new StringPair(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID(), revisionId));
+						        			arcs.add(new Edge("link", revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID(), revisionId));
 						        			System.out.println(wiki.getPage(revApi.getPageIdForRevisionId(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID())).getTitle()+" #TO# "+revisionId);
 					        			}
 				        			}
