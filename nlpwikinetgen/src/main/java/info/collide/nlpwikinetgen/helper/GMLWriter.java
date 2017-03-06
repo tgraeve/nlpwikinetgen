@@ -17,7 +17,7 @@ public class GMLWriter {
     	writer = new BufferedWriter(new FileWriter(outputDir));
 	}
 	
-	public void writeFile(List<Vertex> vertices, List<StringPair> arcs) throws IOException {
+	public void writeFile(List<Vertex> vertices, List<Edge> arcs) throws IOException {
 		// start gml file
         writer.write("graph [");
         writer.newLine();
@@ -30,6 +30,8 @@ public class GMLWriter {
             writer.newLine();
             writer.write("\t\tid "+v.getId());
             writer.newLine();
+            writer.write("\t\tid "+v.getPageId());
+            writer.newLine();
             writer.write("\t\tlabel \""+v.getName()+"\"");
             writer.newLine();
             writer.write("\t\tisMajorEdit \""+v.isFlagged()+"\"");
@@ -39,12 +41,14 @@ public class GMLWriter {
             writer.write("\t]");
             writer.newLine();
         }
-        for(StringPair a : arcs) {
+        for(Edge e : arcs) {
         	writer.write("\tedge [");
         	writer.newLine();
-        	writer.write("\t\tsource "+a.getSource());
+        	writer.write("\t\tsource "+e.getType());
         	writer.newLine();
-        	writer.write("\t\ttarget "+a.getDestination());
+        	writer.write("\t\tsource "+e.getSource());
+        	writer.newLine();
+        	writer.write("\t\ttarget "+e.getDestination());
         	writer.newLine();
         	writer.write("\t]");
         	writer.newLine();
