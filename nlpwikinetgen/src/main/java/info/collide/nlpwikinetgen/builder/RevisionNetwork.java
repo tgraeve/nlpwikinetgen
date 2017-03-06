@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,8 +24,6 @@ import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionIterator;
 import info.collide.nlpwikinetgen.helper.*;
 
 public class RevisionNetwork {
-	
-	static List<String> linkList;
 
 	public static void main(String[] args) throws IOException, WikiApiException {
 		// configure the database connection parameters
@@ -40,11 +40,11 @@ public class RevisionNetwork {
         RevisionApi revApi = new RevisionApi(dbConfig) ;
 
         // Select category
-        String title = "Bier_als_Thema";
+        String title = "Bierkultur";
         Category cat;
         
         // initiate GMLWriter
-        GMLWriter writer = new GMLWriter();
+        GMLWriter writer = new GMLWriter(System.getProperty("user.dir")+"/output/complete_dag_Bier.gml");
         
         try {
             cat = wiki.getCategory(title);
@@ -54,53 +54,66 @@ public class RevisionNetwork {
         
         List<Vertex> vertices = new ArrayList<Vertex>();
         List<StringPair> arcs = new ArrayList<StringPair>();
+        Set<Integer> knownArticles = cat.getArticleIds();
 
         for(Page page : cat.getArticles()) {
         	int prevId = -1;
         	String name = page.getTitle().toString();
-        	linkList = new LinkedList<String>();
+        	List<String> linkList = new LinkedList<String>();
         	
-        	//Get all revisions for the article
+        	//Get all revisions of the article
         	Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(page.getPageId());
         	if(!revisionTimeStamps.isEmpty()) {
+        		
 	        	for(Timestamp t : revisionTimeStamps) {
 	        		Revision rev = revApi.getRevision(page.getPageId(), t);
 	        		int revisionId = rev.getRevisionID();
 	        		String text = rev.getRevisionText();
 	        		boolean major = !rev.isMinor();
 	        		int length = text.length();
-	        		
-	        		// add basic vertex for revision
+        			// add basic vertex for revision
 	        		vertices.add(new Vertex(revisionId,name, major,length));
+	        		
+	        		System.out.println("\nVertex: "+revisionId+"++"+name+"++"+major+"++"+length);
 	        		
 	        		// add basic arcs between revisions of same page
 	        		if(prevId!=-1) {
 	        			arcs.add(new StringPair(prevId,revisionId));
 	        		}
 	        		prevId = revisionId;
-	        		System.out.println("\nVertex: "+revisionId+"++"+name+"++"+major+"++"+length);
 	        		
 	        		// add arcs for links between pages
 	        		List<String> newLinks = parseAndCompareLinks(name,text,linkList);
-	        		
+	        		System.out.println(newLinks);
 	        		
 	        		for(String link : newLinks) {
-	        			System.out.println(link);
-	        			if(wiki.existsPage(link)) {
-		        			int targetPageId = wiki.getPage(link).getPageId();
-		        			List<Timestamp> ts = revApi.getRevisionTimestampsBetweenTimestamps(targetPageId, revApi.getFirstDateOfAppearance(targetPageId), t);
-		        			arcs.add(new StringPair(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID(), revisionId));
-		        			System.out.println(wiki.getPage(revApi.getPageIdForRevisionId(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID())).getTitle()+" #TO# "+revisionId);
-	        			}
+	        			if(!linkList.contains(link.toLowerCase())) {
+		        			System.out.println(link);
+		        			try {
+		        				if(wiki.getPage(link) != null) {
+				        			int targetPageId = wiki.getPage(link).getPageId();
+				        			System.out.println(targetPageId);
+				        			if(knownArticles.contains(targetPageId)) {
+				        				List<Timestamp> ts = revApi.getRevisionTimestampsBetweenTimestamps(targetPageId, revApi.getFirstDateOfAppearance(targetPageId), t);
+					        			if(ts.size() > 0) {
+						        			arcs.add(new StringPair(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID(), revisionId));
+						        			System.out.println(wiki.getPage(revApi.getPageIdForRevisionId(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID())).getTitle()+" #TO# "+revisionId);
+					        			}
+				        			}
+			        			}
+							} catch (Exception e) {
+								// TODO: handle exception
+							}
+		        		}
+	        			linkList.add(link.toLowerCase());
 	        		}
-	        		
-	        		
-	        		linkList.addAll(newLinks);
+	        		System.out.println(linkList);
+	        		//linkList.addAll(newLinks);
 	        	}
         	}
         }
         
-//        writer.writeFile(vertices, arcs);
+        writer.writeFile(vertices, arcs);
 
 	}
 	
@@ -115,12 +128,11 @@ public class RevisionNetwork {
      */
 	private static List<String> parseAndCompareLinks(String pageTitle, String text, List<String> oldLinkList) {
         // extract links
-        linkList = new LinkedList<String>();
+		List<String> linkList = new LinkedList<String>();
         String pattern = "(\\[\\[)([^\\]]+)(\\]\\])";
         Pattern regexPattern = Pattern.compile(pattern);
         Matcher regexMatcher = regexPattern.matcher(text);
         while (regexMatcher.find()) {
-        	System.out.println(regexMatcher.group());
             String link = regexMatcher.group().replaceAll("\\[\\[", "").replaceAll("\\]\\]", "");
             
             // cut off additional parameters
@@ -148,7 +160,7 @@ public class RevisionNetwork {
         // compare links
         List<String> newLinkList = new LinkedList<String>();
         for (String link : linkList) {
-            if (!oldLinkList.contains(link)) {
+            if (!oldLinkList.contains(link.toLowerCase())) {
                 newLinkList.add(link);
             }
         }
