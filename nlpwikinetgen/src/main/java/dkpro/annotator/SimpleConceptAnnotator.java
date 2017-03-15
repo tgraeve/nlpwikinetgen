@@ -28,7 +28,8 @@ import org.apache.uima.jcas.JCas;
 
 import de.tudarmstadt.ukp.dkpro.core.api.featurepath.FeaturePathException;
 import de.tudarmstadt.ukp.dkpro.core.api.featurepath.FeaturePathFactory;
-import de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Concept;
+import dkpro.type.Concept;
+
 /**
  * Diese Komponente annotiert {@link Concept}s nach Parametervorgabe.
  * 

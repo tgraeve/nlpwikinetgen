@@ -30,9 +30,9 @@ import org.apache.uima.jcas.JCas;
 import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence;
 import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token;
 import de.tudarmstadt.ukp.dkpro.core.api.syntax.type.chunk.VC;
-import de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Concept;
-import de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Relation;
-import de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.RelationType;
+import dkpro.type.Relation;
+import dkpro.type.RelationType;
+
 /**
  * Diese Komponente sucht Verbindungen zwischen Konzepten anhand zwischenliegender Verbphrasen und verbindet diese zu einer {@link Relation}.
  * 

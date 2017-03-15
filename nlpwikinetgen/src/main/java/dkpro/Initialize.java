@@ -28,6 +28,7 @@ import de.tudarmstadt.ukp.dkpro.core.api.syntax.type.chunk.NC;
 import dkpro.annotator.SlidingWindowRelationAnnotator;
 import dkpro.annotator.SpotlightAnnotator;
 import dkpro.annotator.SvoRelationClassifier;
+import dkpro.exporter.SGFExporter;
 
 /**
  * Dient der Initialisierung der Extractor zur Netzwerkextraktion.

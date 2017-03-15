@@ -48,7 +48,7 @@ import org.xml.sax.SAXException;
 import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Lemma;
 import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence;
 import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token;
-import de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Concept;
+import dkpro.type.Concept;
 
 /**
  * 

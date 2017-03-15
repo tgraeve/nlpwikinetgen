@@ -33,11 +33,11 @@ import de.tudarmstadt.ukp.dkpro.core.opennlp.OpenNlpChunker;
 import de.tudarmstadt.ukp.dkpro.core.opennlp.OpenNlpPosTagger;
 import de.tudarmstadt.ukp.dkpro.core.stanfordnlp.StanfordLemmatizer;
 import de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter;
-import de.tudarmstadt.ukp.experiments.tgraeve.text2network.annotator.ChunkTagChanger;
-import de.tudarmstadt.ukp.experiments.tgraeve.text2network.interfaces.I_Extractor;
+import dkpro.interfaces.I_Extractor;
+
 
 /**
- * Dieser Extractor kann vollständig konfigueriert werden.
+ * Dieser Extractor kann vollständig konfiguriert werden.
  * Er beinhaltet nur das Einlesen von Text.
  * 
  * 

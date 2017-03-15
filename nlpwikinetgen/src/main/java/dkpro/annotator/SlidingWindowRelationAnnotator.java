@@ -31,8 +31,9 @@ import org.apache.uima.jcas.tcas.Annotation;
 
 import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence;
 import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token;
-import de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Concept;
-import de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Relation;
+import dkpro.type.Concept;
+import dkpro.type.Relation;
+
 /**
  * Diese Komponente sucht Verbindungen zwischen Konzepten und verbindet diese zu einer {@link Relation}.
  * 
