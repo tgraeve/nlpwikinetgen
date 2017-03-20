@@ -120,9 +120,6 @@ public class RevisionConcepts {
         
         //iterating over all pages included in given category
         for(Page page : cat.getArticles()) {
-        	int prevId = -1;
-        	String name = page.getTitle().toString();
-        	List<String> linkList = new LinkedList<String>();
         	int pageId = page.getPageId();
         	
         	//Get all revisions of the article
@@ -133,8 +130,6 @@ public class RevisionConcepts {
 	        		Revision rev = revApi.getRevision(pageId, t);
 	        		int revisionId = rev.getRevisionID();
 	        		String text = rev.getRevisionText();
-	        		boolean major = !rev.isMinor();
-	        		int length = text.length();
 	        		       		
 	        		//process dkpro
 	        		jcas.reset();
@@ -145,10 +140,10 @@ public class RevisionConcepts {
 	        		for(Concept concept : JCasUtil.select(jcas, Concept.class))
 	        		{
 	        			System.out.println("KONZEPT: "+ concept);
-	        			Statement stmt = conn.createStatement();
 	        			try {
 	        				insertConcept.setInt(1, revisionId);
 	        				insertConcept.setString(2, concept.getLabel());
+	        				insertConcept.executeUpdate();
 						} catch (SQLException e) {
 							System.out.println("Skipping Concept - already existing");
 						}
@@ -156,5 +151,9 @@ public class RevisionConcepts {
 	        	}
         	}
         }
+        if(insertConcept != null) {
+        	insertConcept.close();
+        }
+        conn.close();
 	}
 }
