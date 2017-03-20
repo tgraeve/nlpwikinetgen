@@ -1,6 +1,11 @@
 package info.collide.nlpwikinetgen.builder;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,6 +21,7 @@ import org.apache.uima.fit.factory.AnalysisEngineFactory;
 import org.apache.uima.fit.factory.JCasFactory;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
+
 import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
 
 import de.tudarmstadt.ukp.dkpro.core.opennlp.OpenNlpChunker;
@@ -39,7 +45,7 @@ import info.collide.nlpwikinetgen.helper.*;
 
 public class RevisionNetwork {
 
-	public static void main(String[] args) throws IOException, WikiApiException, UIMAException {
+	public static void main(String[] args) throws IOException, WikiApiException, UIMAException, SQLException {
 		
 		
 		// configure the database connection parameters								//ENGLISH
@@ -81,13 +87,28 @@ public class RevisionNetwork {
         // initiate GMLWriter
         GMLWriter writer = new GMLWriter(System.getProperty("user.dir")+"/output/complete_dag_Bier.gml");
         
-        
-        //testing if category exists
+        //test if category exists
         try {
             cat = wiki.getCategory(title);
         } catch (WikiPageNotFoundException e) {
             throw new WikiApiException("Category " + title + " does not exist");
         }
+        
+        //initiate SQL Connection
+        try {
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+        Connection conn = null;
+        try {
+			conn = DriverManager.getConnection("jdbc:mysql://h2655337.stratoserver.net:3306/enwiki_20170111?" + "user=jwpldbuser" + "&" + "password=password");
+		} catch (SQLException e) {
+			System.out.println("SQLException: " + e.getMessage());
+		    System.out.println("SQLState: " + e.getSQLState());
+		    System.out.println("VendorError: " + e.getErrorCode());
+		}
+        PreparedStatement insertConcept = conn.prepareStatement("INSERT INTO revisions_concepts_german_beer_culture VALUES (?,'?')");
         
         
         List<Vertex> vertices = new ArrayList<Vertex>();
@@ -170,7 +191,15 @@ public class RevisionNetwork {
 	        		
 	        		for(Concept concept : JCasUtil.select(jcas, Concept.class))
 	        		{
-	        			System.out.println("KONZEPT:  " + concept.getCoveredText());
+	        			System.out.println("KONZEPT: "+ concept);
+	        			Statement stmt = conn.createStatement();
+	        			try {
+	        				insertConcept.setInt(1, revisionId);
+	        				insertConcept.setString(2, concept.getLabel());
+						} catch (SQLException e) {
+							System.out.println("Skipping Concept - already existing");
+						}
+	        			
 	        		}
 	        	}
         	}
