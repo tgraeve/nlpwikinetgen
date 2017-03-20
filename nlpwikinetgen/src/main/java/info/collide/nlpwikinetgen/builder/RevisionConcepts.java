@@ -106,7 +106,7 @@ public class RevisionConcepts {
 		    System.out.println("SQLState: " + e.getSQLState());
 		    System.out.println("VendorError: " + e.getErrorCode());
 		}
-        PreparedStatement insertConcept = conn.prepareStatement("INSERT INTO revisions_concepts_german_beer_culture VALUES (?,'?')");
+        PreparedStatement insertConcept = conn.prepareStatement("INSERT INTO revision_concepts VALUES (?,'?')");
         
         
         //initialize dkpro pipeline components
