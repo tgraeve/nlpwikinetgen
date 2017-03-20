@@ -94,35 +94,9 @@ public class RevisionNetwork {
             throw new WikiApiException("Category " + title + " does not exist");
         }
         
-        //initiate SQL Connection
-        try {
-			Class.forName("com.mysql.jdbc.Driver").newInstance();
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-        Connection conn = null;
-        try {
-			conn = DriverManager.getConnection("jdbc:mysql://h2655337.stratoserver.net:3306/enwiki_20170111?" + "user=jwpldbuser" + "&" + "password=password");
-		} catch (SQLException e) {
-			System.out.println("SQLException: " + e.getMessage());
-		    System.out.println("SQLState: " + e.getSQLState());
-		    System.out.println("VendorError: " + e.getErrorCode());
-		}
-        PreparedStatement insertConcept = conn.prepareStatement("INSERT INTO revisions_concepts_german_beer_culture VALUES (?,'?')");
-        
-        
         List<Vertex> vertices = new ArrayList<Vertex>();
         List<Edge> arcs = new ArrayList<Edge>();
         Set<Integer> knownArticles = cat.getArticleIds();
-        
-        //initialize dkpro pipeline components
-        JCas jcas = JCasFactory.createJCas();
-		AnalysisEngine engine = AnalysisEngineFactory.createEngine(createEngineDescription(createEngineDescription(BreakIteratorSegmenter.class),
-																	createEngineDescription(OpenNlpPosTagger.class),
-																	createEngineDescription(StanfordLemmatizer.class),
-																	createEngineDescription(OpenNlpChunker.class),
-																	createEngineDescription(ChunkTagChanger.class),
-																	createEngineDescription(SpotlightAnnotator.class)));		
         
         //iterating over all pages included in given category
         for(Page page : cat.getArticles()) {
@@ -180,27 +154,6 @@ public class RevisionNetwork {
 	        		}
 	        		System.out.println(linkList);
 	        		//linkList.addAll(newLinks);
-	        		
-	        		
-	        		
-	        		//process dkpro
-	        		jcas.reset();
-	        		jcas.setDocumentText(text);
-	        		jcas.setDocumentLanguage("en");
-	        		engine.process(jcas);
-	        		
-	        		for(Concept concept : JCasUtil.select(jcas, Concept.class))
-	        		{
-	        			System.out.println("KONZEPT: "+ concept);
-	        			Statement stmt = conn.createStatement();
-	        			try {
-	        				insertConcept.setInt(1, revisionId);
-	        				insertConcept.setString(2, concept.getLabel());
-						} catch (SQLException e) {
-							System.out.println("Skipping Concept - already existing");
-						}
-	        			
-	        		}
 	        	}
         	}
         }
