@@ -4,13 +4,24 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.uima.UIMAException;
+import org.apache.uima.analysis_engine.AnalysisEngine;
+import org.apache.uima.fit.factory.AnalysisEngineFactory;
+import org.apache.uima.fit.factory.JCasFactory;
+import org.apache.uima.fit.util.JCasUtil;
+import org.apache.uima.jcas.JCas;
+import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
+
+import de.tudarmstadt.ukp.dkpro.core.opennlp.OpenNlpChunker;
+import de.tudarmstadt.ukp.dkpro.core.opennlp.OpenNlpPosTagger;
+import de.tudarmstadt.ukp.dkpro.core.stanfordnlp.StanfordLemmatizer;
+import de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter;
 import de.tudarmstadt.ukp.wikipedia.api.Category;
 import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
 import de.tudarmstadt.ukp.wikipedia.api.Page;
@@ -21,27 +32,51 @@ import de.tudarmstadt.ukp.wikipedia.api.WikiConstants.Language;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionIterator;
+import dkpro.ChunkTagChanger;
+import dkpro.annotator.SpotlightAnnotator;
+import dkpro.type.Concept;
 import info.collide.nlpwikinetgen.helper.*;
 
 public class RevisionNetwork {
 
-	public static void main(String[] args) throws IOException, WikiApiException {
-		// configure the database connection parameters
-        DatabaseConfiguration dbConfig = new DatabaseConfiguration();
-        dbConfig.setHost("134.91.20.26");
-        dbConfig.setDatabase("wiki_20161101");
-        dbConfig.setUser("tobias");
-        dbConfig.setPassword("password");
-        dbConfig.setLanguage(Language.german);
+	public static void main(String[] args) throws IOException, WikiApiException, UIMAException {
+		
+		
+		// configure the database connection parameters								//ENGLISH
+      DatabaseConfiguration dbConfig = new DatabaseConfiguration();
+      dbConfig.setHost("h2655337.stratoserver.net");
+      dbConfig.setDatabase("enwiki_20170111");
+      dbConfig.setUser("jwpldbadmin");
+      dbConfig.setPassword("APdJWPLDB");
+      dbConfig.setLanguage(Language.english);
 
-        // Create a new German wikipedia.
-        Wikipedia wiki = new Wikipedia(dbConfig);
-        RevisionIterator revIt = new RevisionIterator(dbConfig) ;
-        RevisionApi revApi = new RevisionApi(dbConfig) ;
+      // Create a new english wikipedia.
+      Wikipedia wiki = new Wikipedia(dbConfig);
+      RevisionIterator revIt = new RevisionIterator(dbConfig) ;
+      RevisionApi revApi = new RevisionApi(dbConfig) ;
 
-        // Select category
-        String title = "Bierkultur";
-        Category cat;
+      // Select page
+      String title = "German_beer_culture";
+      Category cat;
+		
+		
+		
+//		// configure the database connection parameters								//GERMAN
+//        DatabaseConfiguration dbConfig = new DatabaseConfiguration();
+//        dbConfig.setHost("134.91.20.26");
+//        dbConfig.setDatabase("wiki_20161101");
+//        dbConfig.setUser("tobias");
+//        dbConfig.setPassword("password");
+//        dbConfig.setLanguage(Language.german);
+//
+//        // Create a new German wikipedia.
+//        Wikipedia wiki = new Wikipedia(dbConfig);
+//        RevisionIterator revIt = new RevisionIterator(dbConfig) ;
+//        RevisionApi revApi = new RevisionApi(dbConfig) ;
+//
+//        // Select category
+//        String title = "Bierkultur";
+//        Category cat;
         
         // initiate GMLWriter
         GMLWriter writer = new GMLWriter(System.getProperty("user.dir")+"/output/complete_dag_Bier.gml");
@@ -54,9 +89,19 @@ public class RevisionNetwork {
             throw new WikiApiException("Category " + title + " does not exist");
         }
         
+        
         List<Vertex> vertices = new ArrayList<Vertex>();
         List<Edge> arcs = new ArrayList<Edge>();
         Set<Integer> knownArticles = cat.getArticleIds();
+        
+        //initialize dkpro pipeline components
+        JCas jcas = JCasFactory.createJCas();
+		AnalysisEngine engine = AnalysisEngineFactory.createEngine(createEngineDescription(createEngineDescription(BreakIteratorSegmenter.class),
+																	createEngineDescription(OpenNlpPosTagger.class),
+																	createEngineDescription(StanfordLemmatizer.class),
+																	createEngineDescription(OpenNlpChunker.class),
+																	createEngineDescription(ChunkTagChanger.class),
+																	createEngineDescription(SpotlightAnnotator.class)));		
         
         //iterating over all pages included in given category
         for(Page page : cat.getArticles()) {
@@ -114,6 +159,19 @@ public class RevisionNetwork {
 	        		}
 	        		System.out.println(linkList);
 	        		//linkList.addAll(newLinks);
+	        		
+	        		
+	        		
+	        		//process dkpro
+	        		jcas.reset();
+	        		jcas.setDocumentText(text);
+	        		jcas.setDocumentLanguage("en");
+	        		engine.process(jcas);
+	        		
+	        		for(Concept concept : JCasUtil.select(jcas, Concept.class))
+	        		{
+	        			System.out.println("KONZEPT:  " + concept.getCoveredText());
+	        		}
 	        	}
         	}
         }

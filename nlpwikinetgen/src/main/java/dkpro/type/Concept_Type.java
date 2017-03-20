@@ -1,53 +1,27 @@
-
-/* First created by JCasGen Mon Mar 02 01:35:08 CET 2015 */
 package dkpro.type;
 
-import org.apache.uima.cas.Feature;
-import org.apache.uima.cas.FeatureStructure;
-import org.apache.uima.cas.Type;
-import org.apache.uima.cas.impl.CASImpl;
-import org.apache.uima.cas.impl.FSGenerator;
-import org.apache.uima.cas.impl.FeatureImpl;
-import org.apache.uima.cas.impl.TypeImpl;
+/* First created by JCasGen Sun Mar 19 02:24:15 CET 2017 */
+
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.JCasRegistry;
+import org.apache.uima.cas.impl.TypeImpl;
+import org.apache.uima.cas.Type;
+import org.apache.uima.cas.impl.FeatureImpl;
+import org.apache.uima.cas.Feature;
 import org.apache.uima.jcas.tcas.Annotation_Type;
 
 /** 
- * Updated by JCasGen Wed Apr 29 03:29:58 CEST 2015
+ * Updated by JCasGen Sun Mar 19 14:23:50 CET 2017
  * @generated */
 public class Concept_Type extends Annotation_Type {
-  /** @generated 
-   * @return the generator for this type
-   */
-  @Override
-  protected FSGenerator getFSGenerator() {return fsGenerator;}
-  /** @generated */
-  private final FSGenerator fsGenerator = 
-    new FSGenerator() {
-      public FeatureStructure createFS(int addr, CASImpl cas) {
-  			 if (Concept_Type.this.useExistingInstance) {
-  			   // Return eq fs instance if already created
-  		     FeatureStructure fs = Concept_Type.this.jcas.getJfsFromCaddr(addr);
-  		     if (null == fs) {
-  		       fs = new Concept(addr, Concept_Type.this);
-  			   Concept_Type.this.jcas.putJfsFromCaddr(addr, fs);
-  			   return fs;
-  		     }
-  		     return fs;
-        } else return new Concept(addr, Concept_Type.this);
-  	  }
-    };
   /** @generated */
   @SuppressWarnings ("hiding")
   public final static int typeIndexID = Concept.typeIndexID;
   /** @generated 
      @modifiable */
   @SuppressWarnings ("hiding")
-  public final static boolean featOkTst = JCasRegistry.getFeatOkTst("de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Concept");
-
-
-
+  public final static boolean featOkTst = JCasRegistry.getFeatOkTst("dkpro.type.Concept");
+ 
   /** @generated */
   final Feature casFeat_label;
   /** @generated */
@@ -58,7 +32,7 @@ public class Concept_Type extends Annotation_Type {
    */ 
   public String getLabel(int addr) {
         if (featOkTst && casFeat_label == null)
-      jcas.throwFeatMissing("label", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Concept");
+      jcas.throwFeatMissing("label", "dkpro.type.Concept");
     return ll_cas.ll_getStringValue(addr, casFeatCode_label);
   }
   /** @generated
@@ -67,7 +41,7 @@ public class Concept_Type extends Annotation_Type {
    */    
   public void setLabel(int addr, String v) {
         if (featOkTst && casFeat_label == null)
-      jcas.throwFeatMissing("label", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Concept");
+      jcas.throwFeatMissing("label", "dkpro.type.Concept");
     ll_cas.ll_setStringValue(addr, casFeatCode_label, v);}
     
   
@@ -82,7 +56,7 @@ public class Concept_Type extends Annotation_Type {
    */ 
   public String getURI(int addr) {
         if (featOkTst && casFeat_URI == null)
-      jcas.throwFeatMissing("URI", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Concept");
+      jcas.throwFeatMissing("URI", "dkpro.type.Concept");
     return ll_cas.ll_getStringValue(addr, casFeatCode_URI);
   }
   /** @generated
@@ -91,7 +65,7 @@ public class Concept_Type extends Annotation_Type {
    */    
   public void setURI(int addr, String v) {
         if (featOkTst && casFeat_URI == null)
-      jcas.throwFeatMissing("URI", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Concept");
+      jcas.throwFeatMissing("URI", "dkpro.type.Concept");
     ll_cas.ll_setStringValue(addr, casFeatCode_URI, v);}
     
   

@@ -1,17 +1,18 @@
-
-
-/* First created by JCasGen Tue Mar 10 12:24:25 CET 2015 */
 package dkpro.type;
 
-import org.apache.uima.jcas.JCas;
+
+/* First created by JCasGen Sun Mar 19 02:24:15 CET 2017 */
+
+import org.apache.uima.jcas.JCas; 
 import org.apache.uima.jcas.JCasRegistry;
 import org.apache.uima.jcas.cas.TOP_Type;
+
 import org.apache.uima.jcas.tcas.Annotation;
 
 
 /** 
- * Updated by JCasGen Wed Apr 29 03:29:58 CEST 2015
- * XML source: /Users/Tobias/Dropbox/Studium/BA II/Programmierung/de.tudarmstadt.ukp.experiments.tgraeve.text2network/src/main/resources/desc/type/Concept.xml
+ * Updated by JCasGen Sun Mar 19 14:23:50 CET 2017
+ * XML source: /Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/src/main/resources/desc/type/NetworkExtraction.xml
  * @generated */
 public class RelationType extends Annotation {
   /** @generated
@@ -84,7 +85,7 @@ public class RelationType extends Annotation {
    */
   public String getLabel() {
     if (RelationType_Type.featOkTst && ((RelationType_Type)jcasType).casFeat_label == null)
-      jcasType.jcas.throwFeatMissing("label", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.RelationType");
+      jcasType.jcas.throwFeatMissing("label", "dkpro.type.RelationType");
     return jcasType.ll_cas.ll_getStringValue(addr, ((RelationType_Type)jcasType).casFeatCode_label);}
     
   /** setter for label - sets  
@@ -93,7 +94,7 @@ public class RelationType extends Annotation {
    */
   public void setLabel(String v) {
     if (RelationType_Type.featOkTst && ((RelationType_Type)jcasType).casFeat_label == null)
-      jcasType.jcas.throwFeatMissing("label", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.RelationType");
+      jcasType.jcas.throwFeatMissing("label", "dkpro.type.RelationType");
     jcasType.ll_cas.ll_setStringValue(addr, ((RelationType_Type)jcasType).casFeatCode_label, v);}    
    
     
@@ -106,7 +107,7 @@ public class RelationType extends Annotation {
    */
   public Annotation getRType() {
     if (RelationType_Type.featOkTst && ((RelationType_Type)jcasType).casFeat_rType == null)
-      jcasType.jcas.throwFeatMissing("rType", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.RelationType");
+      jcasType.jcas.throwFeatMissing("rType", "dkpro.type.RelationType");
     return (Annotation)(jcasType.ll_cas.ll_getFSForRef(jcasType.ll_cas.ll_getRefValue(addr, ((RelationType_Type)jcasType).casFeatCode_rType)));}
     
   /** setter for rType - sets  
@@ -115,7 +116,7 @@ public class RelationType extends Annotation {
    */
   public void setRType(Annotation v) {
     if (RelationType_Type.featOkTst && ((RelationType_Type)jcasType).casFeat_rType == null)
-      jcasType.jcas.throwFeatMissing("rType", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.RelationType");
+      jcasType.jcas.throwFeatMissing("rType", "dkpro.type.RelationType");
     jcasType.ll_cas.ll_setRefValue(addr, ((RelationType_Type)jcasType).casFeatCode_rType, jcasType.ll_cas.ll_getFSRef(v));}    
   }
 

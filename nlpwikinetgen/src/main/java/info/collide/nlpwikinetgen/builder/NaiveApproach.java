@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
 import java.util.Collection;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -19,8 +18,6 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
-
 import java.util.*;
 
 import de.tudarmstadt.ukp.wikipedia.api.*;
@@ -252,7 +249,8 @@ public class NaiveApproach implements WikiConstants {
             return destination;
         }
         
-        public boolean equals(Object o) {
+        @Override
+		public boolean equals(Object o) {
             boolean equals = false;
             if (o instanceof StringPair) {
                  StringPair sp = (StringPair) o;
@@ -263,7 +261,8 @@ public class NaiveApproach implements WikiConstants {
             return equals;
         }
         
-        public int hashCode() {
+        @Override
+		public int hashCode() {
             return ("<" + getSource() + ">,<" + getDestination() + ">").hashCode();
         }
     }

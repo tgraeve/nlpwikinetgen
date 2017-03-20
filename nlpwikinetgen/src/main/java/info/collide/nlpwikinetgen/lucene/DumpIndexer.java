@@ -5,6 +5,12 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Collection;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -22,12 +28,14 @@ import org.sweble.wikitext.engine.PageId;
 import org.sweble.wikitext.engine.PageTitle;
 import org.sweble.wikitext.engine.utils.SimpleWikiConfiguration;
 
+import com.mysql.jdbc.Driver;
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+
 import de.fau.cs.osr.ptk.common.AstVisitor;
 import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
 import de.tudarmstadt.ukp.wikipedia.api.Page;
 import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
-import de.tudarmstadt.ukp.wikipedia.api.exception.WikiInitializationException;
 import de.tudarmstadt.ukp.wikipedia.api.sweble.PlainTextConverter;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
@@ -36,7 +44,7 @@ import de.tudarmstadt.ukp.wikipedia.api.WikiConstants.Language;
 
 public class DumpIndexer {
 
-	public static void main(String[] args) throws IOException, WikiApiException {
+	public static void main(String[] args) throws IOException, WikiApiException, SQLException {
 		
 		 // configure the database connection parameters
         DatabaseConfiguration dbConfig = new DatabaseConfiguration();
@@ -57,7 +65,7 @@ public class DumpIndexer {
         
         // Create Revision Machine tools
         RevisionIterator revIt = new RevisionIterator(dbConfig) ;
-        RevisionApi revApi = new RevisionApi(dbConfig) ;
+        RevisionApi revApi = new RevisionApi(dbConfig);
 
         
         for(Page page : wiki.getArticles()) {

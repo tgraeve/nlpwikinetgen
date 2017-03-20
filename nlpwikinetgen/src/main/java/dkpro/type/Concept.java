@@ -1,17 +1,18 @@
-
-
-/* First created by JCasGen Mon Mar 02 01:35:08 CET 2015 */
 package dkpro.type;
 
-import org.apache.uima.jcas.JCas;
+
+/* First created by JCasGen Sun Mar 19 02:24:15 CET 2017 */
+
+import org.apache.uima.jcas.JCas; 
 import org.apache.uima.jcas.JCasRegistry;
 import org.apache.uima.jcas.cas.TOP_Type;
+
 import org.apache.uima.jcas.tcas.Annotation;
 
 
 /** 
- * Updated by JCasGen Wed Apr 29 03:29:58 CEST 2015
- * XML source: /Users/Tobias/Dropbox/Studium/BA II/Programmierung/de.tudarmstadt.ukp.experiments.tgraeve.text2network/src/main/resources/desc/type/Concept.xml
+ * Updated by JCasGen Sun Mar 19 14:23:50 CET 2017
+ * XML source: /Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/src/main/resources/desc/type/NetworkExtraction.xml
  * @generated */
 public class Concept extends Annotation {
   /** @generated
@@ -73,6 +74,8 @@ public class Concept extends Annotation {
    */
   private void readObject() {/*default - does nothing empty block */}
      
+ 
+    
   //*--------------*
   //* Feature: label
 
@@ -82,7 +85,7 @@ public class Concept extends Annotation {
    */
   public String getLabel() {
     if (Concept_Type.featOkTst && ((Concept_Type)jcasType).casFeat_label == null)
-      jcasType.jcas.throwFeatMissing("label", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Concept");
+      jcasType.jcas.throwFeatMissing("label", "dkpro.type.Concept");
     return jcasType.ll_cas.ll_getStringValue(addr, ((Concept_Type)jcasType).casFeatCode_label);}
     
   /** setter for label - sets  
@@ -91,7 +94,7 @@ public class Concept extends Annotation {
    */
   public void setLabel(String v) {
     if (Concept_Type.featOkTst && ((Concept_Type)jcasType).casFeat_label == null)
-      jcasType.jcas.throwFeatMissing("label", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Concept");
+      jcasType.jcas.throwFeatMissing("label", "dkpro.type.Concept");
     jcasType.ll_cas.ll_setStringValue(addr, ((Concept_Type)jcasType).casFeatCode_label, v);}    
    
     
@@ -104,7 +107,7 @@ public class Concept extends Annotation {
    */
   public String getURI() {
     if (Concept_Type.featOkTst && ((Concept_Type)jcasType).casFeat_URI == null)
-      jcasType.jcas.throwFeatMissing("URI", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Concept");
+      jcasType.jcas.throwFeatMissing("URI", "dkpro.type.Concept");
     return jcasType.ll_cas.ll_getStringValue(addr, ((Concept_Type)jcasType).casFeatCode_URI);}
     
   /** setter for URI - sets  
@@ -113,7 +116,7 @@ public class Concept extends Annotation {
    */
   public void setURI(String v) {
     if (Concept_Type.featOkTst && ((Concept_Type)jcasType).casFeat_URI == null)
-      jcasType.jcas.throwFeatMissing("URI", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Concept");
+      jcasType.jcas.throwFeatMissing("URI", "dkpro.type.Concept");
     jcasType.ll_cas.ll_setStringValue(addr, ((Concept_Type)jcasType).casFeatCode_URI, v);}    
   }
 

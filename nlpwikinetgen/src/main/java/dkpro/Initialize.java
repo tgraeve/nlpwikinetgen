@@ -24,7 +24,6 @@ import java.io.IOException;
 
 import org.apache.uima.UIMAException;
 
-import de.tudarmstadt.ukp.dkpro.core.api.syntax.type.chunk.NC;
 import dkpro.annotator.SlidingWindowRelationAnnotator;
 import dkpro.annotator.SpotlightAnnotator;
 import dkpro.annotator.SvoRelationClassifier;

@@ -1,17 +1,18 @@
-
-
-/* First created by JCasGen Tue Mar 03 01:38:25 CET 2015 */
 package dkpro.type;
 
-import org.apache.uima.jcas.JCas;
+
+/* First created by JCasGen Sun Mar 19 02:24:15 CET 2017 */
+
+import org.apache.uima.jcas.JCas; 
 import org.apache.uima.jcas.JCasRegistry;
 import org.apache.uima.jcas.cas.TOP_Type;
+
 import org.apache.uima.jcas.tcas.Annotation;
 
 
 /** 
- * Updated by JCasGen Wed Apr 29 03:29:58 CEST 2015
- * XML source: /Users/Tobias/Dropbox/Studium/BA II/Programmierung/de.tudarmstadt.ukp.experiments.tgraeve.text2network/src/main/resources/desc/type/Concept.xml
+ * Updated by JCasGen Sun Mar 19 14:23:50 CET 2017
+ * XML source: /Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/src/main/resources/desc/type/NetworkExtraction.xml
  * @generated */
 public class Relation extends Annotation {
   /** @generated
@@ -84,7 +85,7 @@ public class Relation extends Annotation {
    */
   public Concept getSource() {
     if (Relation_Type.featOkTst && ((Relation_Type)jcasType).casFeat_source == null)
-      jcasType.jcas.throwFeatMissing("source", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Relation");
+      jcasType.jcas.throwFeatMissing("source", "dkpro.type.Relation");
     return (Concept)(jcasType.ll_cas.ll_getFSForRef(jcasType.ll_cas.ll_getRefValue(addr, ((Relation_Type)jcasType).casFeatCode_source)));}
     
   /** setter for source - sets  
@@ -93,7 +94,7 @@ public class Relation extends Annotation {
    */
   public void setSource(Concept v) {
     if (Relation_Type.featOkTst && ((Relation_Type)jcasType).casFeat_source == null)
-      jcasType.jcas.throwFeatMissing("source", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Relation");
+      jcasType.jcas.throwFeatMissing("source", "dkpro.type.Relation");
     jcasType.ll_cas.ll_setRefValue(addr, ((Relation_Type)jcasType).casFeatCode_source, jcasType.ll_cas.ll_getFSRef(v));}    
    
     
@@ -106,7 +107,7 @@ public class Relation extends Annotation {
    */
   public Concept getTarget() {
     if (Relation_Type.featOkTst && ((Relation_Type)jcasType).casFeat_target == null)
-      jcasType.jcas.throwFeatMissing("target", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Relation");
+      jcasType.jcas.throwFeatMissing("target", "dkpro.type.Relation");
     return (Concept)(jcasType.ll_cas.ll_getFSForRef(jcasType.ll_cas.ll_getRefValue(addr, ((Relation_Type)jcasType).casFeatCode_target)));}
     
   /** setter for target - sets  
@@ -115,7 +116,7 @@ public class Relation extends Annotation {
    */
   public void setTarget(Concept v) {
     if (Relation_Type.featOkTst && ((Relation_Type)jcasType).casFeat_target == null)
-      jcasType.jcas.throwFeatMissing("target", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Relation");
+      jcasType.jcas.throwFeatMissing("target", "dkpro.type.Relation");
     jcasType.ll_cas.ll_setRefValue(addr, ((Relation_Type)jcasType).casFeatCode_target, jcasType.ll_cas.ll_getFSRef(v));}    
    
     
@@ -128,7 +129,7 @@ public class Relation extends Annotation {
    */
   public RelationType getRelation() {
     if (Relation_Type.featOkTst && ((Relation_Type)jcasType).casFeat_relation == null)
-      jcasType.jcas.throwFeatMissing("relation", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Relation");
+      jcasType.jcas.throwFeatMissing("relation", "dkpro.type.Relation");
     return (RelationType)(jcasType.ll_cas.ll_getFSForRef(jcasType.ll_cas.ll_getRefValue(addr, ((Relation_Type)jcasType).casFeatCode_relation)));}
     
   /** setter for relation - sets  
@@ -137,7 +138,7 @@ public class Relation extends Annotation {
    */
   public void setRelation(RelationType v) {
     if (Relation_Type.featOkTst && ((Relation_Type)jcasType).casFeat_relation == null)
-      jcasType.jcas.throwFeatMissing("relation", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.Relation");
+      jcasType.jcas.throwFeatMissing("relation", "dkpro.type.Relation");
     jcasType.ll_cas.ll_setRefValue(addr, ((Relation_Type)jcasType).casFeatCode_relation, jcasType.ll_cas.ll_getFSRef(v));}    
   }
 

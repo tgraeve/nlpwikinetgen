@@ -1,50 +1,26 @@
-
-/* First created by JCasGen Tue Mar 10 12:24:25 CET 2015 */
 package dkpro.type;
 
-import org.apache.uima.cas.Feature;
-import org.apache.uima.cas.FeatureStructure;
-import org.apache.uima.cas.Type;
-import org.apache.uima.cas.impl.CASImpl;
-import org.apache.uima.cas.impl.FSGenerator;
-import org.apache.uima.cas.impl.FeatureImpl;
-import org.apache.uima.cas.impl.TypeImpl;
+/* First created by JCasGen Sun Mar 19 02:24:15 CET 2017 */
+
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.JCasRegistry;
+import org.apache.uima.cas.impl.TypeImpl;
+import org.apache.uima.cas.Type;
+import org.apache.uima.cas.impl.FeatureImpl;
+import org.apache.uima.cas.Feature;
 import org.apache.uima.jcas.tcas.Annotation_Type;
 
 /** 
- * Updated by JCasGen Wed Apr 29 03:29:58 CEST 2015
+ * Updated by JCasGen Sun Mar 19 14:23:50 CET 2017
  * @generated */
 public class RelationType_Type extends Annotation_Type {
-  /** @generated 
-   * @return the generator for this type
-   */
-  @Override
-  protected FSGenerator getFSGenerator() {return fsGenerator;}
-  /** @generated */
-  private final FSGenerator fsGenerator = 
-    new FSGenerator() {
-      public FeatureStructure createFS(int addr, CASImpl cas) {
-  			 if (RelationType_Type.this.useExistingInstance) {
-  			   // Return eq fs instance if already created
-  		     FeatureStructure fs = RelationType_Type.this.jcas.getJfsFromCaddr(addr);
-  		     if (null == fs) {
-  		       fs = new RelationType(addr, RelationType_Type.this);
-  			   RelationType_Type.this.jcas.putJfsFromCaddr(addr, fs);
-  			   return fs;
-  		     }
-  		     return fs;
-        } else return new RelationType(addr, RelationType_Type.this);
-  	  }
-    };
   /** @generated */
   @SuppressWarnings ("hiding")
   public final static int typeIndexID = RelationType.typeIndexID;
   /** @generated 
      @modifiable */
   @SuppressWarnings ("hiding")
-  public final static boolean featOkTst = JCasRegistry.getFeatOkTst("de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.RelationType");
+  public final static boolean featOkTst = JCasRegistry.getFeatOkTst("dkpro.type.RelationType");
  
   /** @generated */
   final Feature casFeat_label;
@@ -56,7 +32,7 @@ public class RelationType_Type extends Annotation_Type {
    */ 
   public String getLabel(int addr) {
         if (featOkTst && casFeat_label == null)
-      jcas.throwFeatMissing("label", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.RelationType");
+      jcas.throwFeatMissing("label", "dkpro.type.RelationType");
     return ll_cas.ll_getStringValue(addr, casFeatCode_label);
   }
   /** @generated
@@ -65,7 +41,7 @@ public class RelationType_Type extends Annotation_Type {
    */    
   public void setLabel(int addr, String v) {
         if (featOkTst && casFeat_label == null)
-      jcas.throwFeatMissing("label", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.RelationType");
+      jcas.throwFeatMissing("label", "dkpro.type.RelationType");
     ll_cas.ll_setStringValue(addr, casFeatCode_label, v);}
     
   
@@ -80,7 +56,7 @@ public class RelationType_Type extends Annotation_Type {
    */ 
   public int getRType(int addr) {
         if (featOkTst && casFeat_rType == null)
-      jcas.throwFeatMissing("rType", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.RelationType");
+      jcas.throwFeatMissing("rType", "dkpro.type.RelationType");
     return ll_cas.ll_getRefValue(addr, casFeatCode_rType);
   }
   /** @generated
@@ -89,7 +65,7 @@ public class RelationType_Type extends Annotation_Type {
    */    
   public void setRType(int addr, int v) {
         if (featOkTst && casFeat_rType == null)
-      jcas.throwFeatMissing("rType", "de.tudarmstadt.ukp.experiments.tgraeve.text2network.type.RelationType");
+      jcas.throwFeatMissing("rType", "dkpro.type.RelationType");
     ll_cas.ll_setRefValue(addr, casFeatCode_rType, v);}
     
   

@@ -24,7 +24,8 @@ public class Edge {
         return destination;
     }
     
-    public boolean equals(Object o) {
+    @Override
+	public boolean equals(Object o) {
         boolean equals = false;
         if (o instanceof Edge) {
              Edge sp = (Edge) o;
@@ -35,7 +36,8 @@ public class Edge {
         return equals;
     }
     
-    public int hashCode() {
+    @Override
+	public int hashCode() {
         return ("<" + getType() + ">,<" + getSource() + ">,<" + getDestination() + ">").hashCode();
     }
 }

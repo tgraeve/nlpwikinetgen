@@ -18,7 +18,8 @@ public class StringPair {
         return destination;
     }
     
-    public boolean equals(Object o) {
+    @Override
+	public boolean equals(Object o) {
         boolean equals = false;
         if (o instanceof StringPair) {
              StringPair sp = (StringPair) o;
@@ -29,7 +30,8 @@ public class StringPair {
         return equals;
     }
     
-    public int hashCode() {
+    @Override
+	public int hashCode() {
         return ("<" + getSource() + ">,<" + getDestination() + ">").hashCode();
     }
 }

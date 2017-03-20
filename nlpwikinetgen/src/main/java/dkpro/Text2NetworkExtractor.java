@@ -28,6 +28,7 @@ import org.apache.uima.analysis_engine.AnalysisEngineDescription;
 import org.apache.uima.collection.CollectionReaderDescription;
 import org.apache.uima.fit.component.CasDumpWriter;
 
+import de.tudarmstadt.ukp.dkpro.core.api.io.ResourceCollectionReaderBase;
 import de.tudarmstadt.ukp.dkpro.core.io.text.TextReader;
 import de.tudarmstadt.ukp.dkpro.core.opennlp.OpenNlpChunker;
 import de.tudarmstadt.ukp.dkpro.core.opennlp.OpenNlpPosTagger;
@@ -56,15 +57,16 @@ public class Text2NetworkExtractor implements I_Extractor {
 	
 	protected AnalysisEngineDescription[] components;
 
+	@Override
 	public void startPipeline(AnalysisEngineDescription... components) throws UIMAException, IOException
 	{
 		this.components = components;	
 		
 		CollectionReaderDescription reader = createReaderDescription(
 		         TextReader.class,
-		         TextReader.PARAM_SOURCE_LOCATION, "input/",
-		         TextReader.PARAM_PATTERNS, new String[] {"[+]*.txt"},
-		         TextReader.PARAM_LANGUAGE, "en");
+		         ResourceCollectionReaderBase.PARAM_SOURCE_LOCATION, "input/",
+		         ResourceCollectionReaderBase.PARAM_PATTERNS, new String[] {"[+]*.txt"},
+		         ResourceCollectionReaderBase.PARAM_LANGUAGE, "en");
 		
 		AnalysisEngineDescription segmenter = createEngineDescription(BreakIteratorSegmenter.class);
 		AnalysisEngineDescription pos = createEngineDescription(OpenNlpPosTagger.class);
@@ -96,6 +98,7 @@ public class Text2NetworkExtractor implements I_Extractor {
 		runPipeline(reader, pipe);
 	}
 
+	@Override
 	public void startPipeline() {
 		// TODO Automatisch generierter Methodenstub
 		
