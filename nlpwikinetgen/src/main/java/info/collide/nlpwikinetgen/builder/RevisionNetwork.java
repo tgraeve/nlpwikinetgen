@@ -40,12 +40,15 @@ import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionIterator;
 import dkpro.ChunkTagChanger;
 import dkpro.annotator.SpotlightAnnotator;
+import dkpro.similarity.algorithms.api.SimilarityException;
+import dkpro.similarity.algorithms.api.TextSimilarityMeasure;
+import dkpro.similarity.algorithms.lexical.ngrams.WordNGramJaccardMeasure;
 import dkpro.type.Concept;
 import info.collide.nlpwikinetgen.helper.*;
 
 public class RevisionNetwork {
 
-	public static void main(String[] args) throws IOException, WikiApiException, UIMAException, SQLException {
+	public static void main(String[] args) throws IOException, WikiApiException, UIMAException, SQLException, SimilarityException {
 		
 		
 		// configure the database connection parameters								//ENGLISH
@@ -105,6 +108,8 @@ public class RevisionNetwork {
         	List<String> linkList = new LinkedList<String>();
         	int pageId = page.getPageId();
         	
+        	String prevText = "";
+        	
         	//Get all revisions of the article
         	Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(page.getPageId());
         	if(!revisionTimeStamps.isEmpty()) {
@@ -115,11 +120,23 @@ public class RevisionNetwork {
 	        		String text = rev.getRevisionText();
 	        		boolean major = !rev.isMinor();
 	        		int length = text.length();
+	        	
 	        		
         			// add basic vertex for revision
 	        		vertices.add(new Vertex(revisionId, pageId, name, major,length));
 	        		
 	        		System.out.println("\nVertex: "+revisionId+"++"+name+"++"+major+"++"+length);
+	        		
+	        		TextSimilarityMeasure ms = new WordNGramJaccardMeasure(3);
+	        		
+	        		String[] tk1 = prevText.split(" ");
+	        		String[] tk2 = text.split(" ");
+	        		
+	        		double score = ms.getSimilarity(tk1, tk2);
+	        		
+	        		System.out.println("Similarity: "+ score);
+	        		
+	        		prevText = text;
 	        		
 	        		// add basic arcs between revisions of same page
 	        		if(prevId!=-1) {
@@ -158,7 +175,7 @@ public class RevisionNetwork {
         	}
         }
         
-        writer.writeFile(vertices, arcs);
+//        writer.writeFile(vertices, arcs);
 	}
 	
 	/**

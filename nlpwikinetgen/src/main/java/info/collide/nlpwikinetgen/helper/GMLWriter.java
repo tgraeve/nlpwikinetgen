@@ -30,7 +30,7 @@ public class GMLWriter {
             writer.newLine();
             writer.write("\t\tid "+v.getId());
             writer.newLine();
-            writer.write("\t\tid "+v.getPageId());
+            writer.write("\t\tpageid "+v.getPageId());
             writer.newLine();
             writer.write("\t\tlabel \""+v.getName()+"\"");
             writer.newLine();
@@ -44,7 +44,7 @@ public class GMLWriter {
         for(Edge e : arcs) {
         	writer.write("\tedge [");
         	writer.newLine();
-        	writer.write("\t\tsource "+e.getType());
+        	writer.write("\t\ttype "+e.getType());
         	writer.newLine();
         	writer.write("\t\tsource "+e.getSource());
         	writer.newLine();
