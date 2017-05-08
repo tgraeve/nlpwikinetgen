@@ -13,6 +13,38 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+  
+  <build>
+  	<plugins>
+  	<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/services/org.apache.lucene.codecs.Codec</resource>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/services/org.apache.lucene.codecs.DocValuesFormat</resource>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/services/org.apache.lucene.codecs.PostingsFormat</resource>
+                                </transformer>
+                            </transformers>
+                         <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>fat</shadedClassifierName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+  	</plugins>
+  </build>
 
   <dependencies>
     <dependency>
@@ -68,16 +100,6 @@
     	<groupId>de.tudarmstadt.ukp.wikipedia</groupId>
     	<artifactId>de.tudarmstadt.ukp.wikipedia.mwdumper</artifactId>
     	<version>1.1.0</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.apache.lucene</groupId>
-    	<artifactId>lucene-analyzers-common</artifactId>
-    	<version>5.5.3</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.apache.lucene</groupId>
-    	<artifactId>lucene-core</artifactId>
-    	<version>5.5.3</version>
     </dependency>
     <dependency>
     	<groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
@@ -155,6 +177,26 @@
     	<groupId>org.dkpro.similarity</groupId>
     	<artifactId>dkpro-similarity-algorithms-lexical-asl</artifactId>
     	<version>2.2.0</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.lucene</groupId>
+    	<artifactId>lucene-core</artifactId>
+    	<version>5.5.4</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.lucene</groupId>
+    	<artifactId>lucene-analyzers-common</artifactId>
+    	<version>5.5.4</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.lucene</groupId>
+    	<artifactId>lucene-codecs</artifactId>
+    	<version>5.5.4</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.lucene</groupId>
+    	<artifactId>lucene-backward-codecs</artifactId>
+    	<version>5.5.4</version>
     </dependency>
   </dependencies>
   <dependencyManagement>

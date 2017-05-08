@@ -1,6 +1,8 @@
 package info.collide.nlpwikinetgen.helper;
 
-public class Edge {
+import java.io.Serializable;
+
+public class Edge implements Serializable {
 	
 	String type;
 	int source;

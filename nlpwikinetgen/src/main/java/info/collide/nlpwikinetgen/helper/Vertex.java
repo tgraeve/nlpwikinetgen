@@ -1,6 +1,8 @@
 package info.collide.nlpwikinetgen.helper;
 
-public class Vertex {
+import java.io.Serializable;
+
+public class Vertex implements Serializable {
 	int Id;
 	int pageId;
 	String name;

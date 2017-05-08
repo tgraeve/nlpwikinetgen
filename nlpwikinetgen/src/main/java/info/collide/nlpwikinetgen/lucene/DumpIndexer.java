@@ -1,15 +1,13 @@
 package info.collide.nlpwikinetgen.lucene;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Collection;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -28,9 +26,6 @@ import org.sweble.wikitext.engine.PageId;
 import org.sweble.wikitext.engine.PageTitle;
 import org.sweble.wikitext.engine.utils.SimpleWikiConfiguration;
 
-import com.mysql.jdbc.Driver;
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-
 import de.fau.cs.osr.ptk.common.AstVisitor;
 import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
 import de.tudarmstadt.ukp.wikipedia.api.Page;
@@ -39,23 +34,52 @@ import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.api.sweble.PlainTextConverter;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
-import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionIterator;
 import de.tudarmstadt.ukp.wikipedia.api.WikiConstants.Language;
 
 public class DumpIndexer {
 
 	public static void main(String[] args) throws IOException, WikiApiException, SQLException {
 		
-		 // configure the database connection parameters
-        DatabaseConfiguration dbConfig = new DatabaseConfiguration();
-        dbConfig.setHost("134.91.20.26");
-        dbConfig.setDatabase("wiki_20161101");
-        dbConfig.setUser("tobias");
-        dbConfig.setPassword("password");
-        dbConfig.setLanguage(Language.german);
+		DatabaseConfiguration dbConfig = new DatabaseConfiguration();
+		
+		//get local config file
+		BufferedReader br = null;
+		FileReader fr = null;
+		
+		try {
+			fr = new FileReader(System.getProperty("user.dir")+"/dbconf.txt");
+			br = new BufferedReader(fr);
+			
+			String host = br.readLine();
+			String db = br.readLine();
+			String user = br.readLine();
+			String pw = br.readLine();
+			
+	        dbConfig.setHost(host);
+	        dbConfig.setDatabase(db);
+	        dbConfig.setUser(user);
+	        dbConfig.setPassword(pw);
+	        dbConfig.setLanguage(Language.english);
+			
+		} catch (Exception e) {
+			System.out.println("Config file seems to be broken");
+			e.printStackTrace();
+		}
+		finally {
+			br.close();
+			fr.close();
+		}
+		
+//		 // configure the database connection parameters
+//        DatabaseConfiguration dbConfig = new DatabaseConfiguration();
+//        dbConfig.setHost("h2655337.stratoserver.net");
+//        dbConfig.setDatabase("enwiki_20170111");
+//        dbConfig.setUser("jwpldbadmin");
+//        dbConfig.setPassword("APdJWPLDB");
+//        dbConfig.setLanguage(Language.english);
         
         //set lucene config
-        Directory directory = FSDirectory.open(new File(System.getProperty("user.dir")+"/output/lucene/wiki_20161101").toPath());
+        Directory directory = FSDirectory.open(new File(System.getProperty("user.dir")+"/lucene/enwiki_20170111").toPath());
         Analyzer analyzer = new StandardAnalyzer();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         IndexWriter indexWriter = new IndexWriter(directory , config);
@@ -64,12 +88,11 @@ public class DumpIndexer {
         Wikipedia wiki = new Wikipedia(dbConfig);
         
         // Create Revision Machine tools
-        RevisionIterator revIt = new RevisionIterator(dbConfig) ;
         RevisionApi revApi = new RevisionApi(dbConfig);
 
-        
         for(Page page : wiki.getArticles()) {
         	String title = page.getTitle().toString();
+        	
         	Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(page.getPageId());
         	if(!revisionTimeStamps.isEmpty()) {
 	        	for(Timestamp t : revisionTimeStamps) {
@@ -84,16 +107,17 @@ public class DumpIndexer {
 	        	}
         	}
         }
-
+        indexWriter.close();
+        directory.close();
 	}
 	
 	static void index(IndexWriter writer, int revisionId, String text) throws IOException {
     	Document doc = new Document();
     	
-    	Field revId = new StoredField("RevisionID", revisionId);
+    	Field revId = new StoredField("revisionId", revisionId);
     	doc.add(revId);
     	
-    	Field article = new TextField("Text", text, Store.NO);
+    	Field article = new TextField("text", text, Store.NO);
     	doc.add(article);
     	
     	writer.addDocument(doc);
