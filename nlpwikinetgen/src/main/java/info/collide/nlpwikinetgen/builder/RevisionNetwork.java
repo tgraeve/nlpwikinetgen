@@ -1,6 +1,8 @@
 package info.collide.nlpwikinetgen.builder;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -174,6 +176,17 @@ public class RevisionNetwork {
 	        	}
         	}
         }
+        
+        //Serialize vertices and edges
+        FileOutputStream fos = new FileOutputStream("vertices.tmp");
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(vertices);
+        fos = new FileOutputStream("edges.tmp");
+        oos = new ObjectOutputStream(fos);
+        oos.writeObject(arcs);
+        oos.close();
+        
+        
         
 //        writer.writeFile(vertices, arcs);
 	}
