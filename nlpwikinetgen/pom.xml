@@ -181,22 +181,22 @@
     <dependency>
     	<groupId>org.apache.lucene</groupId>
     	<artifactId>lucene-core</artifactId>
-    	<version>5.5.4</version>
+    	<version>6.5.1</version>
     </dependency>
     <dependency>
     	<groupId>org.apache.lucene</groupId>
     	<artifactId>lucene-analyzers-common</artifactId>
-    	<version>5.5.4</version>
+    	<version>6.5.1</version>
     </dependency>
     <dependency>
     	<groupId>org.apache.lucene</groupId>
     	<artifactId>lucene-codecs</artifactId>
-    	<version>5.5.4</version>
+    	<version>6.5.1</version>
     </dependency>
     <dependency>
     	<groupId>org.apache.lucene</groupId>
     	<artifactId>lucene-backward-codecs</artifactId>
-    	<version>5.5.4</version>
+    	<version>6.5.1</version>
     </dependency>
   </dependencies>
   <dependencyManagement>
