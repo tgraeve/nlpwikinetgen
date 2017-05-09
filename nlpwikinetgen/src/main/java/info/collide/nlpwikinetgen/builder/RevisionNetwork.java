@@ -3,12 +3,10 @@ package info.collide.nlpwikinetgen.builder;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
+
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -17,19 +15,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.uima.UIMAException;
-import org.apache.uima.analysis_engine.AnalysisEngine;
-import org.apache.uima.fit.factory.AnalysisEngineFactory;
-import org.apache.uima.fit.factory.JCasFactory;
-import org.apache.uima.fit.util.JCasUtil;
-import org.apache.uima.jcas.JCas;
-
-import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
-
-import de.tudarmstadt.ukp.dkpro.core.opennlp.OpenNlpChunker;
-import de.tudarmstadt.ukp.dkpro.core.opennlp.OpenNlpPosTagger;
-import de.tudarmstadt.ukp.dkpro.core.stanfordnlp.StanfordLemmatizer;
-import de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter;
 import de.tudarmstadt.ukp.wikipedia.api.Category;
 import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
 import de.tudarmstadt.ukp.wikipedia.api.Page;
@@ -40,17 +25,16 @@ import de.tudarmstadt.ukp.wikipedia.api.WikiConstants.Language;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionIterator;
-import dkpro.ChunkTagChanger;
-import dkpro.annotator.SpotlightAnnotator;
+
 import dkpro.similarity.algorithms.api.SimilarityException;
 import dkpro.similarity.algorithms.api.TextSimilarityMeasure;
 import dkpro.similarity.algorithms.lexical.ngrams.WordNGramJaccardMeasure;
-import dkpro.type.Concept;
+
 import info.collide.nlpwikinetgen.helper.*;
 
 public class RevisionNetwork {
 
-	public static void main(String[] args) throws IOException, WikiApiException, UIMAException, SQLException, SimilarityException {
+	public static void main(String[] args) throws IOException, WikiApiException, SQLException, SimilarityException {
 		
 		
 		// configure the database connection parameters								//ENGLISH
@@ -63,7 +47,6 @@ public class RevisionNetwork {
 
       // Create a new english wikipedia.
       Wikipedia wiki = new Wikipedia(dbConfig);
-      RevisionIterator revIt = new RevisionIterator(dbConfig) ;
       RevisionApi revApi = new RevisionApi(dbConfig) ;
 
       // Select page
@@ -90,27 +73,18 @@ public class RevisionNetwork {
 //        Category cat;
         
         // initiate GMLWriter
-        GMLWriter writer = new GMLWriter(System.getProperty("user.dir")+"/output/complete_dag_Bier.gml");
+        GMLWriter writer = new GMLWriter(System.getProperty("user.dir")+"/output/complete_dag.gml");
         
-        //test if category exists
-        try {
-            cat = wiki.getCategory(title);
-        } catch (WikiPageNotFoundException e) {
-            throw new WikiApiException("Category " + title + " does not exist");
-        }
-        
-        List<Vertex> vertices = new ArrayList<Vertex>();
-        List<Edge> arcs = new ArrayList<Edge>();
-        Set<Integer> knownArticles = cat.getArticleIds();
+        List<Node> nodes = new ArrayList<Node>();
+        List<Edge> edges = new ArrayList<Edge>();
+//        Set<Integer> knownArticles = cat.getArticleIds();
         
         //iterating over all pages included in given category
-        for(Page page : cat.getArticles()) {
+        for(Page page : wiki.getArticles()) {
         	int prevId = -1;
         	String name = page.getTitle().toString();
         	List<String> linkList = new LinkedList<String>();
         	int pageId = page.getPageId();
-        	
-        	String prevText = "";
         	
         	//Get all revisions of the article
         	Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(page.getPageId());
@@ -120,33 +94,26 @@ public class RevisionNetwork {
 	        		Revision rev = revApi.getRevision(pageId, t);
 	        		int revisionId = rev.getRevisionID();
 	        		String text = rev.getRevisionText();
-	        		boolean major = !rev.isMinor();
-	        		int length = text.length();
 	        	
+        			// add basic node for revision
+	        		nodes.add(new Node(revisionId, pageId, name));
 	        		
-        			// add basic vertex for revision
-	        		vertices.add(new Vertex(revisionId, pageId, name, major,length));
+//	        		TextSimilarityMeasure ms = new WordNGramJaccardMeasure(3);
+//	        		
+//	        		String[] tk1 = prevText.split(" ");
+//	        		String[] tk2 = text.split(" ");
+//	        		
+//	        		double score = ms.getSimilarity(tk1, tk2);
 	        		
-	        		System.out.println("\nVertex: "+revisionId+"++"+name+"++"+major+"++"+length);
+//	        		prevText = text;
 	        		
-	        		TextSimilarityMeasure ms = new WordNGramJaccardMeasure(3);
-	        		
-	        		String[] tk1 = prevText.split(" ");
-	        		String[] tk2 = text.split(" ");
-	        		
-	        		double score = ms.getSimilarity(tk1, tk2);
-	        		
-	        		System.out.println("Similarity: "+ score);
-	        		
-	        		prevText = text;
-	        		
-	        		// add basic arcs between revisions of same page
+	        		// add basic edges between revisions of same page
 	        		if(prevId!=-1) {
-	        			arcs.add(new Edge("revision", prevId,revisionId));
+	        			edges.add(new Edge("revision", prevId,revisionId));
 	        		}
 	        		prevId = revisionId;
 	        		
-	        		// add arcs for links between pages
+	        		// add edges for links between pages
 	        		List<String> newLinks = parseAndCompareLinks(name,text,linkList);
 	        		System.out.println(newLinks);
 	        		
@@ -157,13 +124,13 @@ public class RevisionNetwork {
 		        				if(wiki.getPage(link) != null) {
 				        			int targetPageId = wiki.getPage(link).getPageId();
 				        			System.out.println(targetPageId);
-				        			if(knownArticles.contains(targetPageId)) {
+//				        			if(knownArticles.contains(targetPageId)) { //due to problem that no revisions for page existent
 				        				List<Timestamp> ts = revApi.getRevisionTimestampsBetweenTimestamps(targetPageId, revApi.getFirstDateOfAppearance(targetPageId), t);
 					        			if(ts.size() > 0) {
-						        			arcs.add(new Edge("link", revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID(), revisionId));
+						        			edges.add(new Edge("link", revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID(), revisionId));
 						        			System.out.println(wiki.getPage(revApi.getPageIdForRevisionId(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID())).getTitle()+" #TO# "+revisionId);
 					        			}
-				        			}
+//				        			}
 			        			}
 							} catch (Exception e) {
 								// TODO: handle exception
@@ -171,24 +138,20 @@ public class RevisionNetwork {
 		        		}
 	        			linkList.add(link.toLowerCase());
 	        		}
-	        		System.out.println(linkList);
-	        		//linkList.addAll(newLinks);
 	        	}
         	}
         }
         
-        //Serialize vertices and edges
+        //Serialize nodes and edges
         FileOutputStream fos = new FileOutputStream("vertices.tmp");
         ObjectOutputStream oos = new ObjectOutputStream(fos);
-        oos.writeObject(vertices);
+        oos.writeObject(nodes);
         fos = new FileOutputStream("edges.tmp");
         oos = new ObjectOutputStream(fos);
-        oos.writeObject(arcs);
+        oos.writeObject(edges);
         oos.close();
         
-        
-        
-//        writer.writeFile(vertices, arcs);
+        writer.writeFile(nodes, edges);
 	}
 	
 	/**
