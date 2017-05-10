@@ -19,18 +19,11 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.sweble.wikitext.engine.CompiledPage;
-import org.sweble.wikitext.engine.Compiler;
-import org.sweble.wikitext.engine.PageId;
-import org.sweble.wikitext.engine.PageTitle;
-import org.sweble.wikitext.engine.utils.SimpleWikiConfiguration;
 
-import de.fau.cs.osr.ptk.common.AstVisitor;
 import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
 import de.tudarmstadt.ukp.wikipedia.api.Page;
 import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
-import de.tudarmstadt.ukp.wikipedia.api.sweble.PlainTextConverter;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import de.tudarmstadt.ukp.wikipedia.api.WikiConstants.Language;
@@ -90,12 +83,12 @@ public class DumpIndexer {
         RevisionApi revApi = new RevisionApi(dbConfig);
 
         for(Page page : wiki.getArticles()) {
-        	String title = page.getTitle().toString();
+        	int pageId = page.getPageId();
         	
-        	Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(page.getPageId());
+        	Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(pageId);
         	if(!revisionTimeStamps.isEmpty()) {
 	        	for(Timestamp t : revisionTimeStamps) {
-	        		Revision rev = revApi.getRevision(page.getPageId(), t);
+	        		Revision rev = revApi.getRevision(pageId, t);
 	        		int revisionId = rev.getRevisionID();
 	        		
 	        		String text = rev.getRevisionText();
@@ -119,7 +112,11 @@ public class DumpIndexer {
     	Field article = new TextField("text", text, Store.NO);
     	doc.add(article);
     	
-    	writer.addDocument(doc);
-    	
+    	//just backup for filter in analyzer. terms may not be too long.
+    	try {
+    		writer.addDocument(doc);
+		} catch (IllegalArgumentException e) {
+			System.out.println("Term too long.");
+		}
     }
 }

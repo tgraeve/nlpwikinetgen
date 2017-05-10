@@ -1,6 +1,8 @@
 package info.collide.nlpwikinetgen.builder;
 
+import java.io.BufferedReader;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
@@ -11,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,30 +21,47 @@ import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
 import de.tudarmstadt.ukp.wikipedia.api.Page;
 import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
-import de.tudarmstadt.ukp.wikipedia.api.exception.WikiPageNotFoundException;
 import de.tudarmstadt.ukp.wikipedia.api.WikiConstants.Language;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
-import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionIterator;
-
-import dkpro.similarity.algorithms.api.SimilarityException;
-import dkpro.similarity.algorithms.api.TextSimilarityMeasure;
-import dkpro.similarity.algorithms.lexical.ngrams.WordNGramJaccardMeasure;
 
 import info.collide.nlpwikinetgen.helper.*;
 
 public class RevisionNetwork {
 
-	public static void main(String[] args) throws IOException, WikiApiException, SQLException, SimilarityException {
+	public static void main(String[] args) throws IOException, WikiApiException, SQLException {
 		
 		
 		// configure the database connection parameters								//ENGLISH
       DatabaseConfiguration dbConfig = new DatabaseConfiguration();
-      dbConfig.setHost("h2655337.stratoserver.net");
-      dbConfig.setDatabase("enwiki_20170111");
-      dbConfig.setUser("jwpldbadmin");
-      dbConfig.setPassword("APdJWPLDB");
-      dbConfig.setLanguage(Language.english);
+    
+      //get local config file
+    		BufferedReader br = null;
+    		FileReader fr = null;
+    		
+    		try {
+    			fr = new FileReader(System.getProperty("user.dir")+"/dbconf.txt");
+    			br = new BufferedReader(fr);
+    			
+    			String host = br.readLine();
+    			String db = br.readLine();
+    			String user = br.readLine();
+    			String pw = br.readLine();
+    			
+    	        dbConfig.setHost(host);
+    	        dbConfig.setDatabase(db);
+    	        dbConfig.setUser(user);
+    	        dbConfig.setPassword(pw);
+    	        dbConfig.setLanguage(Language.english);
+    			
+    		} catch (Exception e) {
+    			System.out.println("Config file seems to be broken");
+    			e.printStackTrace();
+    		}
+    		finally {
+    			br.close();
+    			fr.close();
+    		}
 
       // Create a new english wikipedia.
       Wikipedia wiki = new Wikipedia(dbConfig);
@@ -115,15 +133,12 @@ public class RevisionNetwork {
 	        		
 	        		// add edges for links between pages
 	        		List<String> newLinks = parseAndCompareLinks(name,text,linkList);
-	        		System.out.println(newLinks);
 	        		
 	        		for(String link : newLinks) {
 	        			if(!linkList.contains(link.toLowerCase())) {
-		        			System.out.println(link);
 		        			try {
 		        				if(wiki.getPage(link) != null) {
 				        			int targetPageId = wiki.getPage(link).getPageId();
-				        			System.out.println(targetPageId);
 //				        			if(knownArticles.contains(targetPageId)) { //due to problem that no revisions for page existent
 				        				List<Timestamp> ts = revApi.getRevisionTimestampsBetweenTimestamps(targetPageId, revApi.getFirstDateOfAppearance(targetPageId), t);
 					        			if(ts.size() > 0) {
