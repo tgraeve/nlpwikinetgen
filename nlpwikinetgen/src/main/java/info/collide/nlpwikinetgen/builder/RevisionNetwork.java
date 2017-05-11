@@ -142,6 +142,7 @@ public class RevisionNetwork {
 //				        			if(knownArticles.contains(targetPageId)) { //due to problem that no revisions for page existent
 				        				List<Timestamp> ts = revApi.getRevisionTimestampsBetweenTimestamps(targetPageId, revApi.getFirstDateOfAppearance(targetPageId), t);
 					        			if(ts.size() > 0) {
+					        				linkList.add(link.toLowerCase());
 						        			edges.add(new Edge("link", revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID(), revisionId));
 						        			System.out.println(wiki.getPage(revApi.getPageIdForRevisionId(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID())).getTitle()+" #TO# "+revisionId);
 					        			}
@@ -151,7 +152,6 @@ public class RevisionNetwork {
 								// TODO: handle exception
 							}
 		        		}
-	        			linkList.add(link.toLowerCase());
 	        		}
 	        	}
         	}
