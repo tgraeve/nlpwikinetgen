@@ -151,7 +151,7 @@ public class DumpIndexer {
 							int revisionId = rev.getRevisionID();
 
 							String text = rev.getRevisionText();
-							System.out.println(revisionId);
+//							System.out.println(revisionId);
 							index(indexWriter, revisionId, text);
 						}
 					}
