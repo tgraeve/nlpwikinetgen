@@ -18,7 +18,7 @@ public class InitialBuilder {
 
 	public static void main(String[] args) throws WikiApiException {
 		DumpIndexer indexer = new DumpIndexer(getDatabaseConfig());
-		indexer.indexWiki("German_beer_culture");
+		indexer.indexWiki();
 	}
 	
 	private static DatabaseConfiguration getDatabaseConfig() {

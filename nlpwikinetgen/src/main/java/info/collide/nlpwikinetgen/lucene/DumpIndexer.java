@@ -3,17 +3,19 @@ package info.collide.nlpwikinetgen.lucene;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
 import java.util.Collection;
 
 import org.apache.lucene.analysis.*;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
@@ -31,11 +33,21 @@ public class DumpIndexer {
 	Wikipedia wiki;
 	RevisionApi revApi;
 	IndexWriter indexWriter;
+	Document doc;
+	Field revId;
+	Field article;
 	
 	public DumpIndexer(DatabaseConfiguration dbConfig) throws WikiApiException {
 		this.dbConfig = dbConfig;
 		wiki = new Wikipedia(dbConfig);
 		revApi = new RevisionApi(dbConfig);
+		
+		//instantiate one time due to performance
+		doc = new Document();
+		revId = new StringField("revisionId", "", Store.YES);
+    	doc.add(revId);
+    	article = new TextField("text", "", Store.NO);
+    	doc.add(article);
 	}
 	
 	public void indexWiki() {
@@ -47,6 +59,7 @@ public class DumpIndexer {
         Directory directory = null;
         Analyzer analyzer = new WikiAnalyzer();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        config.setOpenMode(OpenMode.CREATE_OR_APPEND);
         
 		try {
 			directory = FSDirectory.open(new File(System.getProperty("user.dir")+"/lucene/" + wiki.getDatabaseConfiguration().getDatabase()).toPath());
@@ -92,6 +105,7 @@ public class DumpIndexer {
 		}	
 	}
 	
+	
 	public void indexWiki(String category) {
 		Category cat = null;
 		int pageamount = 0;
@@ -110,6 +124,7 @@ public class DumpIndexer {
         Directory directory = null;
         Analyzer analyzer = new WikiAnalyzer();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        config.setOpenMode(OpenMode.CREATE_OR_APPEND);
         
 		try {
 			directory = FSDirectory.open(new File(System.getProperty("user.dir")+"/lucene/" + wiki.getDatabaseConfiguration().getDatabase() +"_"+category).toPath());
@@ -160,16 +175,13 @@ public class DumpIndexer {
 	
 	
 	private void index(IndexWriter writer, int revisionId, String text) throws IOException {
-    	Document doc = new Document();
     	
-    	Field revId = new StoredField("revisionId", revisionId);
-    	doc.add(revId);
+		revId.setStringValue(Integer.toString(revisionId));
+	    article.setStringValue(text);
     	
-    	Field article = new TextField("text", text, Store.NO);
-    	doc.add(article);
-    	
-    	//just backup for filter in analyzer. terms may not be too long.
+    	//try/catch just backup for filter in analyzer. terms may not be too long.
     	try {
+//    		writer.updateDocument(new Term("revisionId",Integer.toString(revisionId)), doc);
     		writer.addDocument(doc);
 		} catch (IllegalArgumentException e) {
 			System.out.println("Maybe term too long.");
