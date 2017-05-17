@@ -5,6 +5,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
+import info.collide.nlpwikinetgen.type.Edge;
+import info.collide.nlpwikinetgen.type.Node;
+
 public class GMLWriter {
 	
 	BufferedWriter writer;

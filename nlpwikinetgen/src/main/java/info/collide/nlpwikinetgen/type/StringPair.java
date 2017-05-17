@@ -1,4 +1,4 @@
-package info.collide.nlpwikinetgen.helper;
+package info.collide.nlpwikinetgen.type;
 
 public class StringPair {
 	int source;

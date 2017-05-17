@@ -1,24 +1,51 @@
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 
-import org.apache.curator.framework.api.GetDataWatchBackgroundStatable;
-
+import de.tudarmstadt.ukp.wikipedia.api.Category;
 import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
 import de.tudarmstadt.ukp.wikipedia.api.WikiConstants.Language;
 import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiInitializationException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
+import info.collide.nlpwikinetgen.builder.SimilarityCalculator;
 import info.collide.nlpwikinetgen.lucene.DumpIndexer;
 
 public class InitialBuilder {
 	
 	static DatabaseConfiguration dbConfig;
+	static Wikipedia wiki;
+	static RevisionApi revApi;
 
 	public static void main(String[] args) throws WikiApiException {
-		DumpIndexer indexer = new DumpIndexer(getDatabaseConfig());
-		indexer.indexWiki();
+		dbConfig = getDatabaseConfig();
+		wiki = getWiki(dbConfig);
+		revApi = getRevisionAPI(dbConfig);
+		
+		Category cat = wiki.getCategory("German_beer_culture");
+		
+		SimilarityCalculator simCalc = new SimilarityCalculator(revApi);
+		simCalc.calcSimilarity(cat.getArticles(), cat.getNumberOfPages());
+//		DumpIndexer indexer = new DumpIndexer(getDatabaseConfig());
+//		indexer.indexWiki();
+		
+		
+	}
+	
+	private static void serializeData(Object o, String content) {
+		FileOutputStream fos;
+		try {
+			fos = new FileOutputStream("/data/" + content);
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+	        oos.writeObject(o);
+	        oos.close();
+		} catch (Exception e) {
+			System.out.println("Failed serializing nodes. Please retry.");
+			e.printStackTrace();
+		} 
 	}
 	
 	private static DatabaseConfiguration getDatabaseConfig() {
@@ -53,34 +80,25 @@ public class InitialBuilder {
 		return dbConfig;
 	}
 	
-//	private static void indexWiki(DatabaseConfiguration dbConfig) {
-//		DumpIndexer indexer = new DumpIndexer(dbConfig);
-//		try {
-//			indexer.indexWiki();
-//		} catch (IOException | WikiApiException e) {
-//			System.out.println("Indexer failed while indexing.");
-//		}	
-//	}
+	private static Wikipedia getWiki(DatabaseConfiguration dbConfig) {
+		try {
+			wiki = new Wikipedia(dbConfig);
+		} catch (WikiInitializationException e) {
+			System.out.println("Can't build wiki object, please check database configuration.");
+			e.printStackTrace();
+		}
+		
+		return wiki;
+	}
 	
-//	private static Wikipedia getWiki(DatabaseConfiguration dbConfig) {
-//		try {
-//			wiki = new Wikipedia(dbConfig);
-//		} catch (WikiInitializationException e) {
-//			System.out.println("Can't build wiki object, please check database configuration.");
-//			e.printStackTrace();
-//		}
-//		
-//		return wiki;
-//	}
-//	
-//	private static RevisionApi getRevisionAPI(DatabaseConfiguration dbConfig) {
-//		try {
-//			revApi = new RevisionApi(dbConfig);
-//		} catch (WikiApiException e) {
-//			System.out.println("Can't build revision api, please check database configuration.");
-//			e.printStackTrace();
-//		}
-//		return revApi;
-//	}
+	private static RevisionApi getRevisionAPI(DatabaseConfiguration dbConfig) {
+		try {
+			revApi = new RevisionApi(dbConfig);
+		} catch (WikiApiException e) {
+			System.out.println("Can't build revision api, please check database configuration.");
+			e.printStackTrace();
+		}
+		return revApi;
+	}
 
 }

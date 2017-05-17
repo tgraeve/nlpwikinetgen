@@ -26,6 +26,8 @@ import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 
 import info.collide.nlpwikinetgen.helper.*;
+import info.collide.nlpwikinetgen.type.Edge;
+import info.collide.nlpwikinetgen.type.Node;
 
 public class RevisionNetwork {
 
@@ -69,7 +71,7 @@ public class RevisionNetwork {
 
       // Select page
       String title = "German_beer_culture";
-      Category cat;
+      Category cat = wiki.getCategory(title);
 		
 		
 		
@@ -98,23 +100,21 @@ public class RevisionNetwork {
 //        Set<Integer> knownArticles = cat.getArticleIds();
         
         //iterating over all pages included in given category
-        for(Page page : wiki.getArticles()) {
+        for(Page page : cat.getArticles()) {
+        	int revisionId = -1;
         	int prevId = -1;
         	String name = page.getTitle().toString();
         	List<String> linkList = new LinkedList<String>();
         	int pageId = page.getPageId();
         	
-        	//Get all revisions of the article
+        	//Get all revisions of an article
         	Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(page.getPageId());
         	if(!revisionTimeStamps.isEmpty()) {
         		
 	        	for(Timestamp t : revisionTimeStamps) {
 	        		Revision rev = revApi.getRevision(pageId, t);
-	        		int revisionId = rev.getRevisionID();
+	        		revisionId = rev.getRevisionID();
 	        		String text = rev.getRevisionText();
-	        	
-        			// add basic node for revision
-	        		nodes.add(new Node(revisionId, pageId, name));
 	        		
 //	        		TextSimilarityMeasure ms = new WordNGramJaccardMeasure(3);
 //	        		
@@ -125,8 +125,10 @@ public class RevisionNetwork {
 	        		
 //	        		prevText = text;
 	        		
-	        		// add basic edges between revisions of same page
 	        		if(prevId!=-1) {
+	        			// add basic node for revision, due to retrieval of follower first in second round
+		        		nodes.add(new Node(prevId, pageId, revisionId));
+		        		// add basic edges between revisions of same page
 	        			edges.add(new Edge("revision", prevId,revisionId));
 	        		}
 	        		prevId = revisionId;
@@ -154,11 +156,15 @@ public class RevisionNetwork {
 		        		}
 	        		}
 	        	}
+	        	//adds last node in revision line of page
+	        	if(revisionId==prevId) {
+	        		nodes.add(new Node(revisionId, pageId));
+	        	}
         	}
         }
         
         //Serialize nodes and edges
-        FileOutputStream fos = new FileOutputStream("vertices.tmp");
+        FileOutputStream fos = new FileOutputStream("nodes.tmp");
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(nodes);
         fos = new FileOutputStream("edges.tmp");
@@ -166,7 +172,7 @@ public class RevisionNetwork {
         oos.writeObject(edges);
         oos.close();
         
-        writer.writeFile(nodes, edges);
+//        writer.writeFile(nodes, edges); //TODO adapt new node configuration
 	}
 	
 	/**
