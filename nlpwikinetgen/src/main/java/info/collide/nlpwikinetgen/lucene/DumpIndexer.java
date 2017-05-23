@@ -37,10 +37,8 @@ public class DumpIndexer {
 	Field revId;
 	Field article;
 	
-	public DumpIndexer(DatabaseConfiguration dbConfig) throws WikiApiException {
-		this.dbConfig = dbConfig;
-		wiki = new Wikipedia(dbConfig);
-		revApi = new RevisionApi(dbConfig);
+	public DumpIndexer(RevisionApi revApi) throws WikiApiException {
+		this.revApi = revApi;
 		
 		//instantiate one time due to performance
 		doc = new Document();
@@ -50,10 +48,9 @@ public class DumpIndexer {
     	doc.add(article);
 	}
 	
-	public void indexWiki() {
+	public void indexWiki(Iterable<Page> pages, int pageAmount) {
 		
 		int pagecounter = 0;
-		long pageamount = wiki.getMetaData().getNumberOfPages();
 		
 		//set lucene config
         Directory directory = null;
@@ -62,7 +59,7 @@ public class DumpIndexer {
         config.setOpenMode(OpenMode.CREATE_OR_APPEND);
         
 		try {
-			directory = FSDirectory.open(new File(System.getProperty("user.dir")+"/lucene/" + wiki.getDatabaseConfiguration().getDatabase()).toPath());
+			directory = FSDirectory.open(new File(System.getProperty("user.dir")+"/data/lucene/").toPath());
 			indexWriter = new IndexWriter(directory , config);
 		} catch (IOException e) {
 			System.out.println("Indexer failed while initializing the index writer.");
@@ -72,7 +69,7 @@ public class DumpIndexer {
 		System.out.println("Start indexing...");
 		
 		try {
-			for(Page page : wiki.getArticles()) {
+			for(Page page : pages) {
 	        	int pageId = page.getPageId(); 
 	        	pagecounter++;
 	        	
@@ -89,7 +86,7 @@ public class DumpIndexer {
     	        	}
             	}
 	        	
-	        	System.out.println("Indexed page " +pagecounter+ " of " +pageamount+ " with ID: " +pageId + " successfully.");
+	        	System.out.println("Indexed page " +pagecounter+ " of " +pageAmount+ " with ID: " +pageId + " successfully.");
 	        	indexWriter.commit();
 	        }
 		} catch (Exception e) {
@@ -105,7 +102,7 @@ public class DumpIndexer {
 		}	
 	}
 	
-	
+	@Deprecated
 	public void indexWiki(String category) {
 		Category cat = null;
 		int pageamount = 0;
@@ -181,8 +178,8 @@ public class DumpIndexer {
     	
     	//try/catch just backup for filter in analyzer. terms may not be too long.
     	try {
-//    		writer.updateDocument(new Term("revisionId",Integer.toString(revisionId)), doc);
-    		writer.addDocument(doc);
+    		writer.updateDocument(new Term("revisionId",Integer.toString(revisionId)), doc);
+//    		writer.addDocument(doc);
 		} catch (IllegalArgumentException e) {
 			System.out.println("Maybe term too long.");
 		}

@@ -21,6 +21,7 @@ import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
 import de.tudarmstadt.ukp.wikipedia.api.Page;
 import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
+import de.tudarmstadt.ukp.wikipedia.api.exception.WikiTitleParsingException;
 import de.tudarmstadt.ukp.wikipedia.api.WikiConstants.Language;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
@@ -30,87 +31,36 @@ import info.collide.nlpwikinetgen.type.Edge;
 import info.collide.nlpwikinetgen.type.Node;
 
 public class RevisionNetwork {
-
-	public static void main(String[] args) throws IOException, WikiApiException, SQLException {
-		
-		
-		// configure the database connection parameters								//ENGLISH
-      DatabaseConfiguration dbConfig = new DatabaseConfiguration();
-    
-      //get local config file
-    		BufferedReader br = null;
-    		FileReader fr = null;
-    		
-    		try {
-    			fr = new FileReader(System.getProperty("user.dir")+"/dbconf.txt");
-    			br = new BufferedReader(fr);
-    			
-    			String host = br.readLine();
-    			String db = br.readLine();
-    			String user = br.readLine();
-    			String pw = br.readLine();
-    			
-    	        dbConfig.setHost(host);
-    	        dbConfig.setDatabase(db);
-    	        dbConfig.setUser(user);
-    	        dbConfig.setPassword(pw);
-    	        dbConfig.setLanguage(Language.english);
-    			
-    		} catch (Exception e) {
-    			System.out.println("Config file seems to be broken");
-    			e.printStackTrace();
-    		}
-    		finally {
-    			br.close();
-    			fr.close();
-    		}
-
-      // Create a new english wikipedia.
-      Wikipedia wiki = new Wikipedia(dbConfig);
-      RevisionApi revApi = new RevisionApi(dbConfig) ;
-
-      // Select page
-      String title = "German_beer_culture";
-      Category cat = wiki.getCategory(title);
-		
-		
-		
-//		// configure the database connection parameters								//GERMAN
-//        DatabaseConfiguration dbConfig = new DatabaseConfiguration();
-//        dbConfig.setHost("134.91.20.26");
-//        dbConfig.setDatabase("wiki_20161101");
-//        dbConfig.setUser("tobias");
-//        dbConfig.setPassword("password");
-//        dbConfig.setLanguage(Language.german);
-//
-//        // Create a new German wikipedia.
-//        Wikipedia wiki = new Wikipedia(dbConfig);
-//        RevisionIterator revIt = new RevisionIterator(dbConfig) ;
-//        RevisionApi revApi = new RevisionApi(dbConfig) ;
-//
-//        // Select category
-//        String title = "Bierkultur";
-//        Category cat;
-        
+	private RevisionApi revApi;
+	
+	public RevisionNetwork(RevisionApi revApi) {
+		this.revApi = revApi;
+	}
+	
+	public void buildNetwork(Wikipedia wiki, Iterable<Page> pages, int pageAmount) throws IOException, WikiApiException {
         // initiate GMLWriter
-        GMLWriter writer = new GMLWriter(System.getProperty("user.dir")+"/output/complete_dag.gml");
+        GMLWriter writer = new GMLWriter(System.getProperty("user.dir")+"/data/dag.gml");
         
         List<Node> nodes = new ArrayList<Node>();
         List<Edge> edges = new ArrayList<Edge>();
 //        Set<Integer> knownArticles = cat.getArticleIds();
         
+        System.out.println("Start building network...");
+        int pagecounter = 0;
+        
         //iterating over all pages included in given category
-        for(Page page : cat.getArticles()) {
+        for(Page page : pages) {
         	int revisionId = -1;
         	int prevId = -1;
         	String name = page.getTitle().toString();
         	List<String> linkList = new LinkedList<String>();
         	int pageId = page.getPageId();
+        	pagecounter++;
         	
         	//Get all revisions of an article
         	Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(page.getPageId());
         	if(!revisionTimeStamps.isEmpty()) {
-        		
+        		System.out.println("Page '" + page.getTitle() + "' (" + page.getPageId() + ") has "+ revisionTimeStamps.size() + " revisions to index.");
 	        	for(Timestamp t : revisionTimeStamps) {
 	        		Revision rev = revApi.getRevision(pageId, t);
 	        		revisionId = rev.getRevisionID();
@@ -146,7 +96,6 @@ public class RevisionNetwork {
 					        			if(ts.size() > 0) {
 					        				linkList.add(link.toLowerCase());
 						        			edges.add(new Edge("link", revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID(), revisionId));
-						        			System.out.println(wiki.getPage(revApi.getPageIdForRevisionId(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID())).getTitle()+" #TO# "+revisionId);
 					        			}
 //				        			}
 			        			}
@@ -161,13 +110,14 @@ public class RevisionNetwork {
 	        		nodes.add(new Node(revisionId, pageId));
 	        	}
         	}
+        	System.out.println("Indexed page " +pagecounter+ " of " +pageAmount+ " with ID: " +pageId + " successfully.");
         }
         
         //Serialize nodes and edges
-        FileOutputStream fos = new FileOutputStream("nodes.tmp");
+        FileOutputStream fos = new FileOutputStream("data/nodes.tmp");
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(nodes);
-        fos = new FileOutputStream("edges.tmp");
+        fos = new FileOutputStream("data/edges.tmp");
         oos = new ObjectOutputStream(fos);
         oos.writeObject(edges);
         oos.close();

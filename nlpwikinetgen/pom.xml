@@ -152,11 +152,6 @@
     	<version>1.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-    	<groupId>com.tinkerpop.blueprints</groupId>
-    	<artifactId>blueprints-core</artifactId>
-    	<version>2.6.0</version>
-    </dependency>
-    <dependency>
     	<groupId>org.apache.httpcomponents</groupId>
     	<artifactId>httpclient</artifactId>
     	<version>4.5.2</version>
@@ -199,21 +194,21 @@
     	<version>6.5.1</version>
     </dependency>
     <dependency>
-    	<groupId>org.apache.spark</groupId>
-    	<artifactId>spark-core_2.11</artifactId>
-    	<version>2.1.1</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.apache.spark</groupId>
-    	<artifactId>spark-graphx_2.11</artifactId>
-    	<version>2.1.1</version>
-    </dependency>
-    <dependency>
     	<groupId>org.hibernate</groupId>
     	<artifactId>
     		hibernate-validator-annotation-processor
     	</artifactId>
     	<version>4.1.0.Final</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.hadoop</groupId>
+    	<artifactId>hadoop-client</artifactId>
+    	<version>2.8.0</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.spark</groupId>
+    	<artifactId>spark-core_2.11</artifactId>
+    	<version>2.1.1</version>
     </dependency>
   </dependencies>
   <dependencyManagement>
@@ -236,13 +231,6 @@
   			<groupId>eu.sisob</groupId>
   			<artifactId>api-data</artifactId>
   			<version>1.0.1-SNAPSHOT</version>
-  			<type>pom</type>
-  			<scope>import</scope>
-  		</dependency>
-  		<dependency>
-  			<groupId>com.tinkerpop.blueprints</groupId>
-  			<artifactId>blueprints-core</artifactId>
-  			<version>2.6.0</version>
   			<type>pom</type>
   			<scope>import</scope>
   		</dependency>

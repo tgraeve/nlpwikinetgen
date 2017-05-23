@@ -1,7 +1,5 @@
 package info.collide.nlpwikinetgen.builder;
 
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +33,13 @@ public class SimilarityCalculator {
 		this.revApi = revApi;
 	}
 	
-	public void calcSimilarity(Iterable<Page> pages, int pageAmount) {
+	/**
+	 * @param pages
+	 * @param pageAmount
+	 * @param tsm
+	 * @return
+	 */
+	public List<DoubleNode> calcSimilarity(Iterable<Page> pages, int pageAmount, TextSimilarityMeasure tsm) {
 		int pagecounter = 0;
 		
 		List<DoubleNode> nodes = new ArrayList<DoubleNode>();
@@ -57,14 +61,12 @@ public class SimilarityCalculator {
     	        		Revision rev = revApi.getRevision(pageId, t);
     	        		revisionId = rev.getRevisionID();
     	        		String text = rev.getRevisionText();
-    	        		
-    	        		TextSimilarityMeasure ms = new WordNGramJaccardMeasure(3);
  	        		
     	        		String[] tk1 = prevText.split(" ");
     	        		String[] tk2 = text.split(" ");
    	        		
     	        		try {
-							double score = ms.getSimilarity(tk1, tk2);
+							double score = tsm.getSimilarity(tk1, tk2);
 							nodes.add(new DoubleNode(revisionId, score));
 						} catch (SimilarityException e) {
 							System.out.println("Failed calculating similarity measure.");
@@ -80,17 +82,6 @@ public class SimilarityCalculator {
 				e.printStackTrace();
 			}
 		}
-		
-		//Serialize nodes
-        FileOutputStream fos;
-		try {
-			fos = new FileOutputStream("similarityNodes.tmp");
-			ObjectOutputStream oos = new ObjectOutputStream(fos);
-	        oos.writeObject(nodes);
-	        oos.close();
-		} catch (Exception e) {
-			System.out.println("Failed serializing nodes. Please retry.");
-			e.printStackTrace();
-		} 
+		return nodes;
 	}
 }
