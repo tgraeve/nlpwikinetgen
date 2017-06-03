@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.DataBuilderController">
+   <children>
+      <VBox prefHeight="67.0" prefWidth="600.0">
+         <children>
+            <HBox alignment="CENTER_LEFT" prefHeight="48.0" prefWidth="600.0">
+               <children>
+                  <Label text="Config File: ">
+                     <HBox.margin>
+                        <Insets right="5.0" />
+                     </HBox.margin>
+                     <tooltip>
+                        <Tooltip text="Config while which includes all parameters for accessing the database" />
+                     </tooltip>
+                  </Label>
+                  <TextField fx:id="tfConfigFile" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets right="10.0" />
+                     </HBox.margin>
+                  </TextField>
+                  <Button fx:id="btnConfigFile" mnemonicParsing="false" onAction="#loadConfigFile" text="Choose" />
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </padding>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" prefHeight="51.0" prefWidth="600.0">
+               <children>
+                  <Label text="Output Folder:">
+                     <HBox.margin>
+                        <Insets right="5.0" />
+                     </HBox.margin>
+                     <tooltip>
+                        <Tooltip text="Select an output folder to store graph and annotation data" />
+                     </tooltip>
+                  </Label>
+                  <TextField fx:id="tfOutputFolder" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets right="10.0" />
+                     </HBox.margin>
+                  </TextField>
+                  <Button fx:id="btnOutputFolder" mnemonicParsing="false" onAction="#loadOutputFolder" text="Choose" />
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </padding>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" prefHeight="0.0" prefWidth="600.0">
+               <children>
+                  <Label text="Source:" />
+                  <CheckBox fx:id="cbWholeWiki" mnemonicParsing="false" onAction="#toggleSource" text="Whole Wikipedia">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                  </CheckBox>
+                  <Label text="or Category:" />
+                  <TextField fx:id="tfCategory" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets left="10.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </padding>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" prefHeight="40.0" prefWidth="600.0">
+               <children>
+                  <CheckBox mnemonicParsing="false" text="Build Graph (Nodes/Edges)">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                     <tooltip>
+                        <Tooltip text="Initially builds all Nodes and Edges of the selected source." />
+                     </tooltip>
+                  </CheckBox>
+                  <CheckBox mnemonicParsing="false" text="Build Lucene Index">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                     <tooltip>
+                        <Tooltip text="Initially builds a Lucene Index of the selected source." />
+                     </tooltip>
+                  </CheckBox>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <SplitPane dividerPositions="0.5" prefHeight="285.0" prefWidth="600.0" VBox.vgrow="SOMETIMES">
+        <items>
+            <ScrollPane>
+               <content>
+                  <TreeView fx:id="tvOptions" onContextMenuRequested="#tvSelection" onKeyReleased="#tvSelection" onMouseClicked="#tvSelection" prefHeight="237.0" prefWidth="300.0" />
+               </content>
+            </ScrollPane>
+            <Pane fx:id="paneParam" prefHeight="200.0" prefWidth="200.0">
+               <children>
+                  <Text layoutX="120.0" layoutY="126.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
+               </children>
+            </Pane>
+        </items>
+      </SplitPane>
+   </children>
+</VBox>

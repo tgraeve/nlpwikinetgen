@@ -1,3 +1,4 @@
+package main;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -14,6 +15,7 @@ import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiInitializationException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import dkpro.similarity.algorithms.lexical.ngrams.WordNGramJaccardMeasure;
+import filter.RDDFilter;
 import info.collide.nlpwikinetgen.builder.RevisionNetwork;
 import info.collide.nlpwikinetgen.builder.SimilarityCalculator;
 import info.collide.nlpwikinetgen.helper.RDDBuilder;
@@ -39,22 +41,26 @@ public class InitialBuilder {
 		wiki = getWiki(dbConfig);
 		revApi = getRevisionAPI(dbConfig);
 		
-		Category cat = wiki.getCategory("German_beer_culture");
-		Iterable<Page> pages = cat.getArticles();
-		int pageAmount = cat.getNumberOfPages();
+//		Category cat = wiki.getCategory("German_beer_culture");
+//		Iterable<Page> pages = cat.getArticles();
+//		int pageAmount = cat.getNumberOfPages();
+//		
+//		RevisionNetwork revNet = new RevisionNetwork(revApi);
+//		revNet.buildNetwork(wiki, pages, pageAmount);
+//		
+//		DumpIndexer indexer = new DumpIndexer(revApi);
+//		indexer.indexWiki(pages, pageAmount);
+//		
+//		SimilarityCalculator simCalc = new SimilarityCalculator(revApi);
+//		List<DoubleNode> simNodes = simCalc.calcSimilarity(pages, pageAmount, new WordNGramJaccardMeasure(3));
+//		serializeData(simNodes, "simNodesJac");
 		
-		RevisionNetwork revNet = new RevisionNetwork(revApi);
-		revNet.buildNetwork(wiki, pages, pageAmount);
-		
-		DumpIndexer indexer = new DumpIndexer(revApi);
-		indexer.indexWiki(pages, pageAmount);
-		
-		SimilarityCalculator simCalc = new SimilarityCalculator(revApi);
-		List<DoubleNode> simNodes = simCalc.calcSimilarity(pages, pageAmount, new WordNGramJaccardMeasure(3));
-		serializeData(simNodes, "simNodesJac");
-		
-		RDDBuilder rddBuild = new RDDBuilder();
-		rddBuild.nodesToRDD("nodes.tmp");
+//		RDDBuilder rddBuild = new RDDBuilder();
+//		rddBuild.nodesToRDD("nodes.tmp");
+//		rddBuild.nodesToRDD("simNodesJac.tmp");
+//		
+		RDDFilter rddMerger = new RDDFilter();
+		rddMerger.filterRDD();
 
 		
 	}
