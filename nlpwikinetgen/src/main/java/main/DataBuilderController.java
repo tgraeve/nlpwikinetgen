@@ -22,9 +22,8 @@ import com.sun.javafx.sg.prism.NGNode;
 
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
+import dkpro.similarity.algorithms.lexical.ngrams.WordNGramContainmentMeasure;
 import dkpro.similarity.algorithms.lexical.ngrams.WordNGramJaccardMeasure;
-import info.collide.nlpwikinetgen.builder.GraphDataComponent;
-import info.collide.nlpwikinetgen.builder.SimilarityCalculator;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -78,15 +77,29 @@ public class DataBuilderController implements Initializable {
 	@FXML
 	private TreeView<String> tvOptions;
 	@FXML
-	private CheckBox cbCharNGram;
-	@FXML
 	private StackPane stackParam;
 	@FXML
 	private VBox WikiMinorFlag;
+		@FXML
+		private CheckBox cbWikiMinorFlag;
 	@FXML
-	private CheckBox cbWikiMinorFlag;
+	private VBox CharacterLengthDifference;
+		@FXML
+		private CheckBox cbCharLengthDiff;
 	@FXML
-	private VBox CharacterNGram;
+	private VBox WordNGramJaccard;
+		@FXML
+		private CheckBox cbWordNGramJaccard;
+		@FXML
+		private TextField tfNJaccard;
+		@FXML
+		private CheckBox cbWordNGramJaccardLower;
+	@FXML
+	private VBox WordNGramContainment;
+		@FXML
+		private CheckBox cbWordNGramContainment;
+		@FXML
+		private TextField tfNContainment;
 	@FXML
 	private Pane paneParam;
 	@FXML
@@ -94,24 +107,61 @@ public class DataBuilderController implements Initializable {
 	@FXML
 	private ProgressBar pbGenerating;
 	
+	public void generate(ActionEvent e) throws IOException {
+		
+		boolean wholeWiki = cbWholeWiki.isSelected();
+		String category = null;
+		List<GraphDataComponent> filter = new ArrayList<>();
+		
+		if (!wholeWiki) {
+			category = tfCategory.getText();
+		}
+		boolean buildGraph = cbBuildGraph.isSelected();
+		boolean buildIndex = cbBuildIndex.isSelected();
+
+		try {
+			db = new DataBuilder(tfConfigFile.getText(), tfOutputFolderDB.getText(), wholeWiki, category, buildGraph, buildIndex);
+			RevisionApi revApi = db.getRevisionAPI();
+			
+			if (cbWikiMinorFlag.isSelected()) {filter.add(new WikiMinorFlag(revApi));}
+			if (cbCharLengthDiff.isSelected()) {filter.add(new CharacterDifference(revApi));}
+			if (cbWordNGramJaccard.isSelected()) {
+				filter.add(new SimilarityCalculator(revApi, new WordNGramJaccardMeasure(Integer.parseInt(tfNJaccard.getText()), cbWordNGramJaccardLower.isSelected())));
+			}
+			if (cbWordNGramContainment.isSelected()) {
+				filter.add(new SimilarityCalculator(revApi, new WordNGramContainmentMeasure(Integer.parseInt(tfNContainment.getText()))));
+			}
+			db.setFilter(filter);
+			
+			Thread th = new Thread(db);
+			th.setDaemon(true);
+			th.start();
+			pbGenerating.setVisible(true);
+			pbGenerating.progressProperty().bind(db.progressProperty());
+			tStatus.textProperty().bind(db.messageProperty());
+		} catch (WikiApiException | IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		TreeItem<String> root = new TreeItem<> ("Root");
 		
 		TreeItem<String> simpleFilter = new TreeItem<> ("Simple Filters");
 			TreeItem<String> wikiMinorFlag = new TreeItem<> ("Wiki Minor Flag");
+			TreeItem<String> charLengthDiff = new TreeItem<> ("Character Length Difference");
+
 			
 		TreeItem<String> similarityFilter = new TreeItem<> ("Similarity Filters");
 			TreeItem<String> nGram = new TreeItem<> ("n-gram");
-				TreeItem<String> charNGram = new TreeItem<> ("Character N-Gram");
-				TreeItem<String> wordNGramContainment = new TreeItem<> ("Word N-gram Containment");
-				TreeItem<String> wordNGramJaccard = new TreeItem<> ("Word N-gram Jaccard");
-
-			
+				TreeItem<String> wordNGramJaccard = new TreeItem<> ("Word N-Gram Jaccard");
+				TreeItem<String> wordNGramContainment = new TreeItem<> ("Word N-Gram Containment");
+	
 		root.getChildren().addAll(simpleFilter, similarityFilter);
-			simpleFilter.getChildren().addAll(wikiMinorFlag);
+			simpleFilter.getChildren().addAll(wikiMinorFlag, charLengthDiff);
 			similarityFilter.getChildren().addAll(nGram);
-				nGram.getChildren().addAll(charNGram,wordNGramContainment, wordNGramJaccard);
+				nGram.getChildren().addAll(wordNGramJaccard, wordNGramContainment);
 		
 		tvOptions.setRoot(root);
 		tvOptions.setShowRoot(false);
@@ -120,7 +170,6 @@ public class DataBuilderController implements Initializable {
 		tfConfigFile.setText("/Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/dbconf.txt");
 		tfOutputFolderDB.setText("/Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/data/firstGUIAttempt");
 		tfCategory.setText("German_beer_culture");
-
 	}
 	
 	public void loadConfigFile(ActionEvent event) {
@@ -157,8 +206,6 @@ public class DataBuilderController implements Initializable {
 		}
 	}
 	
-	
-	
 	public void tvSelection(Event e) throws IOException {
 		paramPanes = stackParam.getChildren();
 		TreeItem<String> item = tvOptions.getSelectionModel().getSelectedItem();
@@ -169,55 +216,5 @@ public class DataBuilderController implements Initializable {
 		boxOld.setVisible(false);
 		boxNew.setVisible(true);
 		boxNew.toFront();
-//		System.out.println(fxmlTitle + box.getId());
-//		
-//		System.out.println(paramPanes.lastIndexOf(box));
-//		Collections.swap(paramPanes,paramPanes.lastIndexOf(box),0);
-		
-		
-//		if (item.getValue() != null) {
-//			paneParam.getChildren().get(0).setVisible(false);
-//			System.out.println(item.getValue());
-//			URL itemBox = getClass().getResource("/main/"+ item.getValue().replaceAll(" ", "") +".fxml");
-//			VBox box = FXMLLoader.load(itemBox);
-//			Node cbSelect = box.getChildren().get(1);
-//			
-//			paneParam.getChildren().add(FXMLLoader.load(getClass().getResource("/main/"+ item.getValue().replaceAll(" ", "") +".fxml")));
-//		} else {
-//			paneParam.getChildren().;
-//		}
-	}
-	
-	public void generate(ActionEvent e) throws IOException {
-		
-		boolean wholeWiki = cbWholeWiki.isSelected();
-		String category = null;
-		List<GraphDataComponent> filter = new ArrayList<>();
-		
-		if (!wholeWiki) {
-			category = tfCategory.getText();
-		}
-		boolean buildGraph = cbBuildGraph.isSelected();
-		boolean buildIndex = cbBuildIndex.isSelected();
-
-		try {
-			db = new DataBuilder(tfConfigFile.getText(), tfOutputFolderDB.getText(), wholeWiki, category, buildGraph, buildIndex);
-			RevisionApi revApi = db.getRevisionAPI();
-			
-			if (cbWikiMinorFlag.isSelected()) {
-				filter.add(new WikiMinorFlag(revApi));
-			}
-			db.setFilter(filter);
-			
-			Thread th = new Thread(db);
-			th.setDaemon(true);
-			th.start();
-			pbGenerating.setVisible(true);
-			pbGenerating.progressProperty().bind(db.progressProperty());
-			tStatus.textProperty().bind(db.messageProperty());
-		} catch (WikiApiException | IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 	}
 }
