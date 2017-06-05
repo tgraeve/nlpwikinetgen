@@ -11,6 +11,8 @@ buildNumber.properties
 .DS_Store
 *.tmp
 data/
+.classpath
+.settings
 
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
 !/.mvn/wrapper/maven-wrapper.jar
