@@ -1,6 +1,7 @@
 package info.collide.nlpwikinetgen.builder;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -30,14 +31,93 @@ import info.collide.nlpwikinetgen.helper.*;
 import info.collide.nlpwikinetgen.type.Edge;
 import info.collide.nlpwikinetgen.type.Node;
 
-public class RevisionNetwork {
+public class RevisionNetwork implements GraphDataComponent {
+	private Wikipedia wiki;
 	private RevisionApi revApi;
+	private String path;
+	
+	private int pageId;
+	private String title;
+	private int prevId = -1;
+	
+	List<Node> nodes;
+	List<Edge> edges;
+	List<String> linkList;
 	
 	public RevisionNetwork(RevisionApi revApi) {
 		this.revApi = revApi;
 	}
 	
-	public void buildNetwork(Wikipedia wiki, Iterable<Page> pages, int pageAmount) throws IOException, WikiApiException {
+	public RevisionNetwork(Wikipedia wiki, RevisionApi revApi, String path) {
+		this.wiki = wiki;
+		this.revApi = revApi;
+		this.path = path;
+		
+		nodes = new ArrayList<Node>();
+		edges = new ArrayList<Edge>();
+	}
+	
+	public void nextPage(int pageId, String title) {
+		this.pageId = pageId;
+		this.title = title;
+		
+		linkList = new LinkedList<String>();
+	}
+	
+	public void nextRevision(int revisionId, String text, Timestamp t) {
+		// add basic node for revision, due to retrieval of follower first in second round
+		nodes.add(new Node(pageId, revisionId));
+		if (prevId != -1) {
+			// add basic edges between revisions of same page
+			edges.add(new Edge("revision", prevId, revisionId));
+		}
+		prevId = revisionId;
+		
+		
+		// add edges for links between pages
+		List<String> newLinks = parseAndCompareLinks(title,text,linkList);
+		
+		for(String link : newLinks) {
+			if(!linkList.contains(link.toLowerCase())) {
+    			try {
+    				if(wiki.getPage(link) != null) {
+	        			int targetPageId = wiki.getPage(link).getPageId();
+//	        			if(knownArticles.contains(targetPageId)) { //due to problem that no revisions for page existent
+	        				List<Timestamp> ts = revApi.getRevisionTimestampsBetweenTimestamps(targetPageId, revApi.getFirstDateOfAppearance(targetPageId), t);
+		        			if(ts.size() > 0) {
+		        				linkList.add(link.toLowerCase());
+			        			edges.add(new Edge("link", revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID(), revisionId));
+		        			}
+//	        			}
+        			}
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+    		}
+		}
+	}
+	
+	public Object close() {
+        //Serialize nodes and edges
+        FileOutputStream fos;
+		try {
+			fos = new FileOutputStream(path+"/nodes.tmp");
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+	        oos.writeObject(nodes);
+	        fos = new FileOutputStream(path+"/edges.tmp");
+	        oos = new ObjectOutputStream(fos);
+	        oos.writeObject(edges);
+	        oos.close();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	
+	@Deprecated
+	public void buildNetwork(Wikipedia wiki, Iterable<Page> pages, long pageAmount) throws IOException, WikiApiException {
         // initiate GMLWriter
         GMLWriter writer = new GMLWriter(System.getProperty("user.dir")+"/data/dag.gml");
         
@@ -53,7 +133,7 @@ public class RevisionNetwork {
         	int revisionId = -1;
         	int prevId = -1;
         	String name = page.getTitle().toString();
-        	List<String> linkList = new LinkedList<String>();
+        	linkList = new LinkedList<String>();
         	int pageId = page.getPageId();
         	pagecounter++;
         	
@@ -65,15 +145,6 @@ public class RevisionNetwork {
 	        		Revision rev = revApi.getRevision(pageId, t);
 	        		revisionId = rev.getRevisionID();
 	        		String text = rev.getRevisionText();
-	        		
-//	        		TextSimilarityMeasure ms = new WordNGramJaccardMeasure(3);
-//	        		
-//	        		String[] tk1 = prevText.split(" ");
-//	        		String[] tk2 = text.split(" ");
-//	        		
-//	        		double score = ms.getSimilarity(tk1, tk2);
-	        		
-//	        		prevText = text;
 	        		
 	        		if(prevId!=-1) {
 	        			// add basic node for revision, due to retrieval of follower first in second round

@@ -26,8 +26,9 @@ import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
+import info.collide.nlpwikinetgen.builder.GraphDataComponent;
 
-public class DumpIndexer {
+public class DumpIndexer implements GraphDataComponent {
 	
 	DatabaseConfiguration dbConfig;
 	Wikipedia wiki;
@@ -37,8 +38,28 @@ public class DumpIndexer {
 	Field revId;
 	Field article;
 	
-	public DumpIndexer(RevisionApi revApi) throws WikiApiException {
+	Directory directory;
+	
+	private String outputFolder;
+	private int pageId;
+	private int revisionId;
+	
+	public DumpIndexer(RevisionApi revApi, String outputFolder) throws WikiApiException {
 		this.revApi = revApi;
+		this.outputFolder = outputFolder;
+		
+		//set lucene config
+        Analyzer analyzer = new WikiAnalyzer();
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+        
+        try {
+			directory = FSDirectory.open(new File(outputFolder+"/lucene/").toPath());
+			indexWriter = new IndexWriter(directory , config);
+		} catch (IOException e) {
+			System.out.println("Indexer failed while initializing the index writer.");
+			e.printStackTrace();
+		}
 		
 		//instantiate one time due to performance
 		doc = new Document();
@@ -48,7 +69,28 @@ public class DumpIndexer {
     	doc.add(article);
 	}
 	
-	public void indexWiki(Iterable<Page> pages, int pageAmount) {
+	public void nextPage(int pageId, String title) throws IOException {
+		indexWriter.commit();
+		this.pageId = pageId;
+	}
+	
+	public void nextRevision(int revisionId, String text, Timestamp t) throws IOException {
+		index(indexWriter, revisionId, text);
+	}
+	
+	public Object close() {
+		try {
+			indexWriter.close();
+			directory.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+		return null;
+	}
+	
+	@Deprecated
+	public void indexWiki(Iterable<Page> pages, long pageAmount) {
 		
 		int pagecounter = 0;
 		
@@ -181,7 +223,7 @@ public class DumpIndexer {
     		writer.updateDocument(new Term("revisionId",Integer.toString(revisionId)), doc);
 //    		writer.addDocument(doc);
 		} catch (IllegalArgumentException e) {
-			System.out.println("Maybe term too long.");
+			System.out.println("Maybe term is too long.");
 		}
     }
 }

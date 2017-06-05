@@ -18,6 +18,7 @@ import info.collide.nlpwikinetgen.type.BasicNode;
 import info.collide.nlpwikinetgen.type.DoubleNode;
 import info.collide.nlpwikinetgen.type.Edge;
 import info.collide.nlpwikinetgen.type.Node;
+import scala.Tuple2;
 import scala.annotation.meta.param;
 
 public class RDDFilter {
@@ -25,20 +26,17 @@ public class RDDFilter {
 	SparkConf conf = new SparkConf().setAppName("NLPWikiNetGen").setMaster("local");
 	JavaSparkContext sc = new JavaSparkContext(conf);
 	
-	public void mergeRdds() {
+	
+	public void filterRDD() {
 		JavaPairRDD<Integer, Node> nodes = JavaPairRDD.fromJavaRDD(sc.objectFile("data/nodesRDD"));
 		JavaPairRDD<Integer, DoubleNode> simNodes = JavaPairRDD.fromJavaRDD(sc.objectFile("data/simNodesJacRDD"));
 		JavaPairRDD<Integer, DoubleNode> filteredSim = simNodes.filter(p -> p._2.getValue() < 0.9);
 		List<Integer> keys = filteredSim.keys().collect();
 		JavaPairRDD<Integer, Node> reduced = nodes.filter(p -> keys.contains(p._1));
 		
-		
-		System.out.println("Alle Nodes: " + nodes.count());
-		System.out.println("Sim Nodes: " + simNodes.count());
-		System.out.println("Filter Nodes: " + filteredSim.count());
-		System.out.println("Reduced Dataset: " + reduced.count());
-		
-		
+		for(Tuple2<Integer, Node> t : reduced.collect()) {
+			System.out.println(t._2.getId());
+		}
 	}
 	
 	public void nodesToRDD(String source) {
