@@ -100,20 +100,21 @@ public class DataBuilder extends Task{
 		updateMessage("Start generating...");
 		for (Page page : pages) {
 			int pageId = page.getPageId();
+			String sPageId = Integer.toString(pageId);
 			String title = page.getTitle().toString();
 			
-			if (revNet != null) {revNet.nextPage(pageId, title);}
-			if (indexer != null) {indexer.nextPage(pageId, title);}
+			if (revNet != null) {revNet.nextPage(sPageId, title);}
+			if (indexer != null) {indexer.nextPage(sPageId, title);}
 			
 			for(GraphDataComponent component : filter) {
-				component.nextPage(pageId, title);
+				component.nextPage(sPageId, title);
 			}
 			
 			Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(pageId);
 			if (!revisionTimeStamps.isEmpty()) {
 				for (Timestamp t : revisionTimeStamps) {
 					Revision rev = revApi.getRevision(pageId, t);
-	        		int revisionId = rev.getRevisionID();
+	        		String revisionId = Integer.toString(rev.getRevisionID());
 	        		String text = rev.getRevisionText();
 	        		
 	        		if (revNet != null) {revNet.nextRevision(revisionId, text, t);}

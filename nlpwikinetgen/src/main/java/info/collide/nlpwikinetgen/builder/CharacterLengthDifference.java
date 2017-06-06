@@ -20,12 +20,12 @@ public class CharacterLengthDifference implements GraphDataComponent {
 	}
 
 	@Override
-	public void nextPage(int pageId, String title) throws Exception {
+	public void nextPage(String pageId, String title) throws Exception {
 		this.prevLength = 0;
 	}
 
 	@Override
-	public void nextRevision(int revisionId, String text, Timestamp t) throws Exception {
+	public void nextRevision(String revisionId, String text, Timestamp t) throws Exception {
 		int length = text.length();
 		int difference = Math.abs(prevLength-length);
 		nodes.add(new IntNode(revisionId, difference));

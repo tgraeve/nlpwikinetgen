@@ -1,38 +1,32 @@
 package info.collide.nlpwikinetgen.type;
 
-public class Node extends BasicNode {
+public class Node {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1170671657280438989L;
-	public int pageId;
-	public int follower;
+	private String id; 
+	private String pageId;
 	
-	public Node (int id, int pageId) {
-		super(id);
+	public Node (String id, String pageId) {
+		this.id = id;
 		this.pageId = pageId;
 	}
-	
-	public Node (int id, int pageId, int follower) {
-		super(id);
-		this.pageId = pageId;
-		this.follower = follower;
+
+	public String getId() {
+		return id;
 	}
-	
-	public int getPageId() {
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getPageId() {
 		return pageId;
 	}
 
-	public int getFollower() {
-		return follower;
-	}
-
-	public void setFollower(int follower) {
-		this.follower = follower;
-	}
-
-	public void setPageId(int pageId) {
+	public void setPageId(String pageId) {
 		this.pageId = pageId;
 	}
 }

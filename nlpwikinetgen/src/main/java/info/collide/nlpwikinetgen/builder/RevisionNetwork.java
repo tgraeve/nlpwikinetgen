@@ -36,9 +36,9 @@ public class RevisionNetwork implements GraphDataComponent {
 	private RevisionApi revApi;
 	private String path;
 	
-	private int pageId;
+	private String pageId;
 	private String title;
-	private int prevId = -1;
+	private String prevId = "";
 	
 	List<Node> nodes;
 	List<Edge> edges;
@@ -57,19 +57,19 @@ public class RevisionNetwork implements GraphDataComponent {
 		edges = new ArrayList<Edge>();
 	}
 	
-	public void nextPage(int pageId, String title) {
+	public void nextPage(String pageId, String title) {
 		this.pageId = pageId;
 		this.title = title;
 		
 		linkList = new LinkedList<String>();
 	}
 	
-	public void nextRevision(int revisionId, String text, Timestamp t) {
+	public void nextRevision(String revisionId, String text, Timestamp t) {
 		// add basic node for revision, due to retrieval of follower first in second round
 		nodes.add(new Node(pageId, revisionId));
-		if (prevId != -1) {
+		if (prevId != "") {
 			// add basic edges between revisions of same page
-			edges.add(new Edge("revision", prevId, revisionId));
+			edges.add(new Edge(prevId, revisionId, "revision"));
 		}
 		prevId = revisionId;
 		
@@ -86,7 +86,7 @@ public class RevisionNetwork implements GraphDataComponent {
 	        				List<Timestamp> ts = revApi.getRevisionTimestampsBetweenTimestamps(targetPageId, revApi.getFirstDateOfAppearance(targetPageId), t);
 		        			if(ts.size() > 0) {
 		        				linkList.add(link.toLowerCase());
-			        			edges.add(new Edge("link", revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID(), revisionId));
+			        			edges.add(new Edge(Integer.toString(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID()), revisionId, "link"));
 		        			}
 //	        			}
         			}
@@ -116,85 +116,85 @@ public class RevisionNetwork implements GraphDataComponent {
 	}
 	
 	
-	@Deprecated
-	public void buildNetwork(Wikipedia wiki, Iterable<Page> pages, long pageAmount) throws IOException, WikiApiException {
-        // initiate GMLWriter
-        GMLWriter writer = new GMLWriter(System.getProperty("user.dir")+"/data/dag.gml");
-        
-        List<Node> nodes = new ArrayList<Node>();
-        List<Edge> edges = new ArrayList<Edge>();
-//        Set<Integer> knownArticles = cat.getArticleIds();
-        
-        System.out.println("Start building network...");
-        int pagecounter = 0;
-        
-        //iterating over all pages included in given category
-        for(Page page : pages) {
-        	int revisionId = -1;
-        	int prevId = -1;
-        	String name = page.getTitle().toString();
-        	linkList = new LinkedList<String>();
-        	int pageId = page.getPageId();
-        	pagecounter++;
-        	
-        	//Get all revisions of an article
-        	Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(page.getPageId());
-        	if(!revisionTimeStamps.isEmpty()) {
-        		System.out.println("Page '" + page.getTitle() + "' (" + page.getPageId() + ") has "+ revisionTimeStamps.size() + " revisions to index.");
-	        	for(Timestamp t : revisionTimeStamps) {
-	        		Revision rev = revApi.getRevision(pageId, t);
-	        		revisionId = rev.getRevisionID();
-	        		String text = rev.getRevisionText();
-	        		
-	        		if(prevId!=-1) {
-	        			// add basic node for revision, due to retrieval of follower first in second round
-		        		nodes.add(new Node(prevId, pageId, revisionId));
-		        		// add basic edges between revisions of same page
-	        			edges.add(new Edge("revision", prevId,revisionId));
-	        		}
-	        		prevId = revisionId;
-	        		
-	        		// add edges for links between pages
-	        		List<String> newLinks = parseAndCompareLinks(name,text,linkList);
-	        		
-	        		for(String link : newLinks) {
-	        			if(!linkList.contains(link.toLowerCase())) {
-		        			try {
-		        				if(wiki.getPage(link) != null) {
-				        			int targetPageId = wiki.getPage(link).getPageId();
-//				        			if(knownArticles.contains(targetPageId)) { //due to problem that no revisions for page existent
-				        				List<Timestamp> ts = revApi.getRevisionTimestampsBetweenTimestamps(targetPageId, revApi.getFirstDateOfAppearance(targetPageId), t);
-					        			if(ts.size() > 0) {
-					        				linkList.add(link.toLowerCase());
-						        			edges.add(new Edge("link", revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID(), revisionId));
-					        			}
-//				        			}
-			        			}
-							} catch (Exception e) {
-								// TODO: handle exception
-							}
-		        		}
-	        		}
-	        	}
-	        	//adds last node in revision line of page
-	        	if(revisionId==prevId) {
-	        		nodes.add(new Node(revisionId, pageId));
-	        	}
-        	}
-        	System.out.println("Indexed page " +pagecounter+ " of " +pageAmount+ " with ID: " +pageId + " successfully.");
-        }
-        
-        //Serialize nodes and edges
-        FileOutputStream fos = new FileOutputStream("data/nodes.tmp");
-        ObjectOutputStream oos = new ObjectOutputStream(fos);
-        oos.writeObject(nodes);
-        fos = new FileOutputStream("data/edges.tmp");
-        oos = new ObjectOutputStream(fos);
-        oos.writeObject(edges);
-        oos.close();
-        
-//        writer.writeFile(nodes, edges); //TODO adapt new node configuration
-	}
+//	@Deprecated
+//	public void buildNetwork(Wikipedia wiki, Iterable<Page> pages, long pageAmount) throws IOException, WikiApiException {
+//        // initiate GMLWriter
+//        GMLWriter writer = new GMLWriter(System.getProperty("user.dir")+"/data/dag.gml");
+//        
+//        List<Node> nodes = new ArrayList<Node>();
+//        List<Edge> edges = new ArrayList<Edge>();
+////        Set<Integer> knownArticles = cat.getArticleIds();
+//        
+//        System.out.println("Start building network...");
+//        int pagecounter = 0;
+//        
+//        //iterating over all pages included in given category
+//        for(Page page : pages) {
+//        	int revisionId = -1;
+//        	int prevId = -1;
+//        	String name = page.getTitle().toString();
+//        	linkList = new LinkedList<String>();
+//        	int pageId = page.getPageId();
+//        	pagecounter++;
+//        	
+//        	//Get all revisions of an article
+//        	Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(page.getPageId());
+//        	if(!revisionTimeStamps.isEmpty()) {
+//        		System.out.println("Page '" + page.getTitle() + "' (" + page.getPageId() + ") has "+ revisionTimeStamps.size() + " revisions to index.");
+//	        	for(Timestamp t : revisionTimeStamps) {
+//	        		Revision rev = revApi.getRevision(pageId, t);
+//	        		revisionId = rev.getRevisionID();
+//	        		String text = rev.getRevisionText();
+//	        		
+//	        		if(prevId!=-1) {
+//	        			// add basic node for revision, due to retrieval of follower first in second round
+//		        		nodes.add(new Node(prevId, pageId, revisionId));
+//		        		// add basic edges between revisions of same page
+//	        			edges.add(new Edge(prevId,revisionId, "revision"));
+//	        		}
+//	        		prevId = revisionId;
+//	        		
+//	        		// add edges for links between pages
+//	        		List<String> newLinks = parseAndCompareLinks(name,text,linkList);
+//	        		
+//	        		for(String link : newLinks) {
+//	        			if(!linkList.contains(link.toLowerCase())) {
+//		        			try {
+//		        				if(wiki.getPage(link) != null) {
+//				        			int targetPageId = wiki.getPage(link).getPageId();
+////				        			if(knownArticles.contains(targetPageId)) { //due to problem that no revisions for page existent
+//				        				List<Timestamp> ts = revApi.getRevisionTimestampsBetweenTimestamps(targetPageId, revApi.getFirstDateOfAppearance(targetPageId), t);
+//					        			if(ts.size() > 0) {
+//					        				linkList.add(link.toLowerCase());
+//						        			edges.add(new Edge(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID(), revisionId, "link"));
+//					        			}
+////				        			}
+//			        			}
+//							} catch (Exception e) {
+//								// TODO: handle exception
+//							}
+//		        		}
+//	        		}
+//	        	}
+//	        	//adds last node in revision line of page
+//	        	if(revisionId==prevId) {
+//	        		nodes.add(new Node(revisionId, pageId));
+//	        	}
+//        	}
+//        	System.out.println("Indexed page " +pagecounter+ " of " +pageAmount+ " with ID: " +pageId + " successfully.");
+//        }
+//        
+//        //Serialize nodes and edges
+//        FileOutputStream fos = new FileOutputStream("data/nodes.tmp");
+//        ObjectOutputStream oos = new ObjectOutputStream(fos);
+//        oos.writeObject(nodes);
+//        fos = new FileOutputStream("data/edges.tmp");
+//        oos = new ObjectOutputStream(fos);
+//        oos.writeObject(edges);
+//        oos.close();
+//        
+////        writer.writeFile(nodes, edges); //TODO adapt new node configuration
+//	}
 	
 	/**
      * Parse the given text, extract links from it and compare

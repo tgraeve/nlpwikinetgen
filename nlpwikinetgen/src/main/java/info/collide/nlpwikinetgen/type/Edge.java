@@ -4,26 +4,30 @@ import java.io.Serializable;
 
 public class Edge implements Serializable {
 	
-	String type;
-	int source;
-    int destination;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6419409809982356478L;
+	private String type;
+	private String src;
+    private String dst;
 
-    public Edge(String type, int source, int destination) {
+    public Edge(String src, String dst, String type) {
     	this.type = type;
-        this.source = source;
-        this.destination = destination;
+        this.src = src;
+        this.dst = dst;
     }
 
     public String getType() {
     	return type;
     }
     
-    public int getSource() {
-        return source;
+    public String getSrc() {
+        return src;
     }
 
-    public int getDestination() {
-        return destination;
+    public String getDst() {
+        return dst;
     }
     
     @Override
@@ -31,7 +35,7 @@ public class Edge implements Serializable {
         boolean equals = false;
         if (o instanceof Edge) {
              Edge sp = (Edge) o;
-             if (getType()==sp.getType() && getSource()==sp.getSource() && getDestination()==sp.getDestination()) {
+             if (getType()==sp.getType() && getSrc()==sp.getSrc() && getDst()==sp.getDst()) {
                  equals = true;
              }
         }
@@ -40,6 +44,14 @@ public class Edge implements Serializable {
     
     @Override
 	public int hashCode() {
-        return ("<" + getType() + ">,<" + getSource() + ">,<" + getDestination() + ">").hashCode();
+        return ("<" + getType() + ">,<" + getSrc() + ">,<" + getDst() + ">").hashCode();
     }
+
+	public void setSrc(String src) {
+		this.src = src;
+	}
+
+	public void setDst(String dst) {
+		this.dst = dst;
+	}
 }

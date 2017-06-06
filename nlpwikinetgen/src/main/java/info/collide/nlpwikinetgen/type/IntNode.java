@@ -8,7 +8,7 @@ public class IntNode extends BasicNode {
 	private static final long serialVersionUID = 7904773846056238988L;
 	public int value;
 	
-	public IntNode (int id, int value) {
+	public IntNode (String id, int value) {
 		super(id);
 		this.value = value;
 	}

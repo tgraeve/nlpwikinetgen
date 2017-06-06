@@ -41,8 +41,8 @@ public class DumpIndexer implements GraphDataComponent {
 	Directory directory;
 	
 	private String outputFolder;
-	private int pageId;
-	private int revisionId;
+	private String pageId;
+	private String revisionId;
 	String descr;
 	
 	public DumpIndexer(RevisionApi revApi, String outputFolder) throws WikiApiException {
@@ -70,12 +70,12 @@ public class DumpIndexer implements GraphDataComponent {
     	doc.add(article);
 	}
 	
-	public void nextPage(int pageId, String title) throws IOException {
+	public void nextPage(String pageId, String title) throws IOException {
 		indexWriter.commit();
 		this.pageId = pageId;
 	}
 	
-	public void nextRevision(int revisionId, String text, Timestamp t) throws IOException {
+	public void nextRevision(String revisionId, String text, Timestamp t) throws IOException {
 		index(indexWriter, revisionId, text);
 	}
 	
@@ -90,60 +90,7 @@ public class DumpIndexer implements GraphDataComponent {
 		return null;
 	}
 	
-	@Deprecated
-	public void indexWiki(Iterable<Page> pages, long pageAmount) {
-		
-		int pagecounter = 0;
-		
-		//set lucene config
-        Directory directory = null;
-        Analyzer analyzer = new WikiAnalyzer();
-        IndexWriterConfig config = new IndexWriterConfig(analyzer);
-        config.setOpenMode(OpenMode.CREATE_OR_APPEND);
-        
-		try {
-			directory = FSDirectory.open(new File(System.getProperty("user.dir")+"/data/lucene/").toPath());
-			indexWriter = new IndexWriter(directory , config);
-		} catch (IOException e) {
-			System.out.println("Indexer failed while initializing the index writer.");
-			e.printStackTrace();
-		}
-		
-		System.out.println("Start indexing...");
-		
-		try {
-			for(Page page : pages) {
-	        	int pageId = page.getPageId(); 
-	        	pagecounter++;
-	        	
-	        	Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(pageId);
-            	if(!revisionTimeStamps.isEmpty()) {
-            		System.out.println("Page '" + page.getTitle() + "' (" + page.getPageId() + ") has "+ revisionTimeStamps.size() + " revisions to index.");
-    	        	for(Timestamp t : revisionTimeStamps) {
-    	        		Revision rev = revApi.getRevision(pageId, t);
-    	        		int revisionId = rev.getRevisionID();
-    	        		
-    	        		String text = rev.getRevisionText();
-    	        		System.out.println(revisionId);
-    	        		index(indexWriter, revisionId, text);
-    	        	}
-            	}
-	        	
-	        	System.out.println("Indexed page " +pagecounter+ " of " +pageAmount+ " with ID: " +pageId + " successfully.");
-	        	indexWriter.commit();
-	        }
-		} catch (Exception e) {
-			System.out.println("Indexer failed while accessing JWPL DB.");
-		} finally {
-	        try {
-				indexWriter.close();
-				directory.close();
-			} catch (IOException e) {
-				System.out.println("Failed closing index writer.");
-				e.printStackTrace();
-			}
-		}	
-	}
+	
 	
 	@Override
 	public void setDescr(String descr) {
@@ -156,83 +103,14 @@ public class DumpIndexer implements GraphDataComponent {
 		return descr;
 	}
 	
-	@Deprecated
-	public void indexWiki(String category) {
-		Category cat = null;
-		int pageamount = 0;
-		try {
-			cat = wiki.getCategory(category);
-			pageamount = cat.getNumberOfPages();
-		} catch (WikiApiException e1) {
-			System.out.println("Category does not exist. Check spelling. Capital sensitive!");
-			e1.printStackTrace();
-		}
-		
-		int pagecounter = 0;
-		String progress = null;
-		
-		//set lucene config
-        Directory directory = null;
-        Analyzer analyzer = new WikiAnalyzer();
-        IndexWriterConfig config = new IndexWriterConfig(analyzer);
-        config.setOpenMode(OpenMode.CREATE_OR_APPEND);
-        
-		try {
-			directory = FSDirectory.open(new File(System.getProperty("user.dir")+"/lucene/" + wiki.getDatabaseConfiguration().getDatabase() +"_"+category).toPath());
-			indexWriter = new IndexWriter(directory , config);
-		} catch (IOException e) {
-			System.out.println("Indexer failed while initializing the index writer.");
-			e.printStackTrace();
-		}
-		
-		System.out.println("Start indexing...");
-		
-		try {
-			if (cat!=null) {
-				for (Page page : cat.getArticles()) {
-					int pageId = page.getPageId();
-					pagecounter++;
-
-					Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(pageId);
-					if (!revisionTimeStamps.isEmpty()) {
-						System.out.println("Page '" + page.getTitle() + "' (" + page.getPageId() + ") has "
-								+ revisionTimeStamps.size() + " revisions to index.");
-						for (Timestamp t : revisionTimeStamps) {
-							Revision rev = revApi.getRevision(pageId, t);
-							int revisionId = rev.getRevisionID();
-
-							String text = rev.getRevisionText();
-//							System.out.println(revisionId);
-							index(indexWriter, revisionId, text);
-						}
-					}
-
-					System.out.println("Indexed page " + pagecounter + " of " + pageamount + " with ID: " + pageId + " successfully.");
-					indexWriter.commit();
-				} 
-			}
-		} catch (Exception e) {
-			System.out.println("Indexer failed while accessing JWPL DB.");
-		} finally {
-	        try {
-				indexWriter.close();
-				directory.close();
-			} catch (IOException e) {
-				System.out.println("Failed closing index writer.");
-				e.printStackTrace();
-			}
-		}	
-	}
-	
-	
-	private void index(IndexWriter writer, int revisionId, String text) throws IOException {
+	private void index(IndexWriter writer, String revisionId, String text) throws IOException {
     	
-		revId.setStringValue(Integer.toString(revisionId));
+		revId.setStringValue(revisionId);
 	    article.setStringValue(text);
     	
     	//try/catch just backup for filter in analyzer. terms may not be too long.
     	try {
-    		writer.updateDocument(new Term("revisionId",Integer.toString(revisionId)), doc);
+    		writer.updateDocument(new Term("revisionId",revisionId), doc);
 //    		writer.addDocument(doc);
 		} catch (IllegalArgumentException e) {
 			System.out.println("Maybe term is too long.");

@@ -32,7 +32,7 @@ public class SimilarityCalculator implements GraphDataComponent {
 	Field article;
 	private List<DoubleNode> nodes;
 	private String prevText;
-	private int pageId;
+	private String pageId;
 	private TextSimilarityMeasure tsm;
 	String descr;
 	
@@ -44,14 +44,14 @@ public class SimilarityCalculator implements GraphDataComponent {
 	
 
 	@Override
-	public void nextPage(int pageId, String title) throws Exception {
+	public void nextPage(String pageId, String title) throws Exception {
 		this.pageId = pageId;
 		prevText = "";
 	}
 
 
 	@Override
-	public void nextRevision(int revisionId, String text, Timestamp t) throws Exception {
+	public void nextRevision(String revisionId, String text, Timestamp t) throws Exception {
 		String[] tk1 = prevText.split(" ");
 		String[] tk2 = text.split(" ");
 		
@@ -65,55 +65,7 @@ public class SimilarityCalculator implements GraphDataComponent {
 		prevText = text;
 	}
 
-
 	public List<DoubleNode> close() {
-		return nodes;
-	}
-	
-	
-	public List<DoubleNode> calcSimilarity(Iterable<Page> pages, int pageAmount, TextSimilarityMeasure tsm) {
-		int pagecounter = 0;
-		
-		List<DoubleNode> nodes = new ArrayList<DoubleNode>();
-	
-		System.out.println("Start calculating similarity...");
-		
-		for(Page page : pages) {
-        	int pageId = page.getPageId(); 
-        	int revisionId;
-        	String prevText = "";
-        	pagecounter++;
-        	
-        	Collection<Timestamp> revisionTimeStamps;
-			try {
-				revisionTimeStamps = revApi.getRevisionTimestamps(pageId);
-				if(!revisionTimeStamps.isEmpty()) {
-            		System.out.println("Page '" + page.getTitle() + "' (" + page.getPageId() + ") has "+ revisionTimeStamps.size() + " revisions to index.");
-    	        	for(Timestamp t : revisionTimeStamps) {
-    	        		Revision rev = revApi.getRevision(pageId, t);
-    	        		revisionId = rev.getRevisionID();
-    	        		String text = rev.getRevisionText();
- 	        		
-    	        		String[] tk1 = prevText.split(" ");
-    	        		String[] tk2 = text.split(" ");	
-   	        		
-    	        		try {
-							double score = tsm.getSimilarity(tk1, tk2);
-							nodes.add(new DoubleNode(revisionId, score));
-						} catch (SimilarityException e) {
-							System.out.println("Failed calculating similarity measure.");
-							e.printStackTrace();
-						}
-    	        		prevText = text;
-    	        	}
-            	}
-	        	
-	        	System.out.println("Calculated page " +pagecounter+ " of " +pageAmount+ " with ID: " +pageId + " successfully.");
-			} catch (WikiApiException e) {
-				System.out.println("Failed accessing JWPL API. Check database.");
-				e.printStackTrace();
-			}
-		}
 		return nodes;
 	}
 

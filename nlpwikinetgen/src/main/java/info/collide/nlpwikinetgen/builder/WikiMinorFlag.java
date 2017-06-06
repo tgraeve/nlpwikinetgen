@@ -20,14 +20,13 @@ public class WikiMinorFlag implements GraphDataComponent {
 	}
 
 	@Override
-	public void nextPage(int pageId, String title) throws Exception {
+	public void nextPage(String pageId, String title) throws Exception {
 		// TODO Auto-generated method stub
 	}
 
 	@Override
-	public void nextRevision(int revisionId, String text, Timestamp t) throws Exception {
-		System.out.println(revisionId);
-		nodes.add(new BoolNode(revisionId, revApi.getRevision(revisionId).isMinor()));
+	public void nextRevision(String revisionId, String text, Timestamp t) throws Exception {
+		nodes.add(new BoolNode(revisionId, revApi.getRevision(Integer.parseInt(revisionId)).isMinor()));
 		System.out.println(revisionId);
 	}
 

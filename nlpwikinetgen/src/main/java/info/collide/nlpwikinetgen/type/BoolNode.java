@@ -8,7 +8,7 @@ public class BoolNode extends BasicNode {
 	private static final long serialVersionUID = -5916343235809481865L;
 	public boolean value;
 	
-	public BoolNode (int id, boolean value) {
+	public BoolNode (String id, boolean value) {
 		super(id);
 		this.value = value;
 	}
