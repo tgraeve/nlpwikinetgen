@@ -43,6 +43,7 @@ public class DumpIndexer implements GraphDataComponent {
 	private String outputFolder;
 	private int pageId;
 	private int revisionId;
+	String descr;
 	
 	public DumpIndexer(RevisionApi revApi, String outputFolder) throws WikiApiException {
 		this.revApi = revApi;
@@ -142,6 +143,17 @@ public class DumpIndexer implements GraphDataComponent {
 				e.printStackTrace();
 			}
 		}	
+	}
+	
+	@Override
+	public void setDescr(String descr) {
+		this.descr = descr;
+		
+	}
+
+	@Override
+	public String getDescr() {
+		return descr;
 	}
 	
 	@Deprecated

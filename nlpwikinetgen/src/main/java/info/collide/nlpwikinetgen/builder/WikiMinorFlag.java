@@ -10,7 +10,7 @@ import info.collide.nlpwikinetgen.type.BasicNode;
 import info.collide.nlpwikinetgen.type.BoolNode;
 
 public class WikiMinorFlag implements GraphDataComponent {
-	
+	String descr = "WikiMinorFlag";
 	RevisionApi revApi;
 	List<BoolNode> nodes;
 	
@@ -35,4 +35,14 @@ public class WikiMinorFlag implements GraphDataComponent {
 		return nodes;
 	}
 
+	@Override
+	public void setDescr(String descr) {
+		this.descr = descr;
+		
+	}
+
+	@Override
+	public String getDescr() {
+		return descr;
+	}
 }

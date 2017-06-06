@@ -1,6 +1,9 @@
 package main;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -101,14 +104,16 @@ public class DataBuilderController implements Initializable {
 		@FXML
 		private TextField tfNContainment;
 	@FXML
-	private Pane paneParam;
+	private StackPane stackParamGB;
 	@FXML
 	private Text tStatus;
 	@FXML
 	private ProgressBar pbGenerating;
 	
+	@FXML
+	private TreeView<String> tvExFilters;
+	
 	public void generate(ActionEvent e) throws IOException {
-		
 		boolean wholeWiki = cbWholeWiki.isSelected();
 		String category = null;
 		List<GraphDataComponent> filter = new ArrayList<>();
@@ -123,13 +128,21 @@ public class DataBuilderController implements Initializable {
 			db = new DataBuilder(tfConfigFile.getText(), tfOutputFolderDB.getText(), wholeWiki, category, buildGraph, buildIndex);
 			RevisionApi revApi = db.getRevisionAPI();
 			
-			if (cbWikiMinorFlag.isSelected()) {filter.add(new WikiMinorFlag(revApi));}
-			if (cbCharLengthDiff.isSelected()) {filter.add(new CharacterDifference(revApi));}
+			if (cbWikiMinorFlag.isSelected()) {
+				filter.add(new WikiMinorFlag(revApi));
+			}
+			if (cbCharLengthDiff.isSelected()) {
+				filter.add(new CharacterLengthDifference(revApi));
+			}
 			if (cbWordNGramJaccard.isSelected()) {
-				filter.add(new SimilarityCalculator(revApi, new WordNGramJaccardMeasure(Integer.parseInt(tfNJaccard.getText()), cbWordNGramJaccardLower.isSelected())));
+				SimilarityCalculator simCal = new SimilarityCalculator(revApi, new WordNGramJaccardMeasure(Integer.parseInt(tfNJaccard.getText()), cbWordNGramJaccardLower.isSelected()));
+				simCal.setDescr("WordNGramJaccard_"+Integer.parseInt(tfNJaccard.getText())+"_"+cbWordNGramJaccardLower.isSelected());
+				filter.add(simCal);
 			}
 			if (cbWordNGramContainment.isSelected()) {
-				filter.add(new SimilarityCalculator(revApi, new WordNGramContainmentMeasure(Integer.parseInt(tfNContainment.getText()))));
+				SimilarityCalculator simCal = new SimilarityCalculator(revApi, new WordNGramContainmentMeasure(Integer.parseInt(tfNContainment.getText())));
+				simCal.setDescr("WordNGramContainment_"+Integer.parseInt(tfNContainment.getText()));
+				filter.add(simCal);
 			}
 			db.setFilter(filter);
 			
@@ -189,10 +202,20 @@ public class DataBuilderController implements Initializable {
 		DirectoryChooser dc = new DirectoryChooser();
 		dc.setInitialDirectory(new File(System.getProperty("user.dir")));
 		File dir = dc.showDialog(null);
+		TreeItem<String> root = new TreeItem<> ("Root");
 		
 		if (dir != null) {
 			tfOutputFolderDB.setText(dir.getAbsolutePath());
 			tfOutputFolderGB.setText(dir.getAbsolutePath());
+			
+			for(File file : dir.listFiles((d,name) -> (!name.equals(".DS_Store")))) {
+				TreeItem<String> filter = new TreeItem<> (file.getName().split("\\.")[0]);
+				root.getChildren().add(filter);
+			}
+			
+			tvExFilters.setRoot(root);
+			tvExFilters.setShowRoot(false);
+			
 		} else {
 			System.out.println("Output directory selection failed.");
 		}
@@ -206,12 +229,23 @@ public class DataBuilderController implements Initializable {
 		}
 	}
 	
-	public void tvSelection(Event e) throws IOException {
+	public void tvSelectionDB(Event e) throws IOException {
 		paramPanes = stackParam.getChildren();
 		TreeItem<String> item = tvOptions.getSelectionModel().getSelectedItem();
 		String fxmlTitle = item.getValue().replaceAll(" ", "").replaceAll("-", "");
 		Scene scene = stackParam.getScene();
 		VBox boxNew = (VBox) scene.lookup("#"+fxmlTitle);
+		VBox boxOld = (VBox) paramPanes.get(paramPanes.size()-1);
+		boxOld.setVisible(false);
+		boxNew.setVisible(true);
+		boxNew.toFront();
+	}
+	public void tvSelectionGB(Event e) throws IOException {
+		paramPanes = stackParamGB.getChildren();
+		TreeItem<String> item = tvExFilters.getSelectionModel().getSelectedItem();
+		String fxmlTitle = item.getValue().split("_")[0];
+		Scene scene = stackParamGB.getScene();
+		VBox boxNew = (VBox) scene.lookup("#"+fxmlTitle+"GB");
 		VBox boxOld = (VBox) paramPanes.get(paramPanes.size()-1);
 		boxOld.setVisible(false);
 		boxNew.setVisible(true);

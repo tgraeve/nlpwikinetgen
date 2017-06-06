@@ -247,4 +247,16 @@ public class RevisionNetwork implements GraphDataComponent {
         return newLinkList;
     }
 
+	@Override
+	public void setDescr(String descr) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getDescr() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

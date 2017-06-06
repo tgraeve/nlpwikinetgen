@@ -34,6 +34,7 @@ public class SimilarityCalculator implements GraphDataComponent {
 	private String prevText;
 	private int pageId;
 	private TextSimilarityMeasure tsm;
+	String descr;
 	
 	public SimilarityCalculator(RevisionApi revApi, TextSimilarityMeasure tsm) {
 		this.revApi = revApi;
@@ -66,10 +67,6 @@ public class SimilarityCalculator implements GraphDataComponent {
 
 
 	public List<DoubleNode> close() {
-//        FileOutputStream fos = new FileOutputStream(path+"/nodes.tmp");
-//        ObjectOutputStream oos = new ObjectOutputStream(fos);
-//        oos.writeObject(nodes);
-//        oos.close();
 		return nodes;
 	}
 	
@@ -118,5 +115,16 @@ public class SimilarityCalculator implements GraphDataComponent {
 			}
 		}
 		return nodes;
+	}
+
+	@Override
+	public void setDescr(String descr) {
+		this.descr = descr;
+		
+	}
+
+	@Override
+	public String getDescr() {
+		return descr;
 	}
 }

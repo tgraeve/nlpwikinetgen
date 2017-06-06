@@ -7,13 +7,14 @@ import java.util.List;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import info.collide.nlpwikinetgen.type.IntNode;
 
-public class CharacterDifference implements GraphDataComponent {
+public class CharacterLengthDifference implements GraphDataComponent {
 	
 	RevisionApi revApi;
 	List<IntNode> nodes;
 	int prevLength;
+	String descr = "CharacterLengthDifference";
 	
-	public CharacterDifference(RevisionApi revApi) {
+	public CharacterLengthDifference(RevisionApi revApi) {
 		this.revApi = revApi;
 		this.nodes = new ArrayList<IntNode>();
 	}
@@ -32,6 +33,17 @@ public class CharacterDifference implements GraphDataComponent {
 
 	public Object close() {
 		return nodes;
+	}
+	
+	@Override
+	public void setDescr(String descr) {
+		this.descr = descr;
+		
+	}
+
+	@Override
+	public String getDescr() {
+		return descr;
 	}
 
 }

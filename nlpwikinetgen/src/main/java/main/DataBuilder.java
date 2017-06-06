@@ -133,7 +133,7 @@ public class DataBuilder extends Task{
 		if (indexer != null) {indexer.close();}
 		
 		for(GraphDataComponent component : filter) {
-			serializeData(component.close(), component.getClass().getName());
+			serializeData(component.close(), component.getDescr());
 		}
 		
 		updateMessage("Done.");
@@ -168,7 +168,7 @@ public class DataBuilder extends Task{
 	}
 	
 	
-	private void serializeData(Object o, String content) {
+	public void serializeData(Object o, String content) {
 		FileOutputStream fos;
 		try {
 			fos = new FileOutputStream(pathToFolder+"/" + content + ".tmp");
