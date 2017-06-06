@@ -38,7 +38,7 @@ public class RevisionNetwork implements GraphDataComponent {
 	
 	private String pageId;
 	private String title;
-	private String prevId = "";
+	private String prevId = null;
 	
 	List<Node> nodes;
 	List<Edge> edges;
@@ -66,8 +66,8 @@ public class RevisionNetwork implements GraphDataComponent {
 	
 	public void nextRevision(String revisionId, String text, Timestamp t) {
 		// add basic node for revision, due to retrieval of follower first in second round
-		nodes.add(new Node(pageId, revisionId));
-		if (prevId != "") {
+		nodes.add(new Node(revisionId,pageId));
+		if (prevId != null) {
 			// add basic edges between revisions of same page
 			edges.add(new Edge(prevId, revisionId, "revision"));
 		}
@@ -245,18 +245,15 @@ public class RevisionNetwork implements GraphDataComponent {
         }
         
         return newLinkList;
-    }
+	}
 
-	@Override
 	public void setDescr(String descr) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
 	public String getDescr() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }

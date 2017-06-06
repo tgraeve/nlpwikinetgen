@@ -8,14 +8,14 @@ public class Edge implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 6419409809982356478L;
-	private String type;
 	private String src;
     private String dst;
+	private String type;
 
     public Edge(String src, String dst, String type) {
-    	this.type = type;
         this.src = src;
         this.dst = dst;
+        this.type = type;
     }
 
     public String getType() {

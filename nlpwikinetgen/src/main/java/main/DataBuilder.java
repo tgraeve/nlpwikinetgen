@@ -63,35 +63,30 @@ public class DataBuilder extends Task{
 		this.pathToConf = pathToConf;
 		this.pathToFolder = pathToFolder;
 		this.wholeWiki = wholeWiki;
-		this.Category = Category;
+		this.Category = category;
 		this.buildGraph = buildGraph;
 		this.buildIndex = buildIndex;
 		
 		dbConfig = getDatabaseConfig();
 		wiki = getWiki(dbConfig);
 		revApi = getRevisionAPI();
-		folderMeta = new ArrayList<String>();
 				
 		if (wholeWiki) {
 			pages = wiki.getArticles();
 			pageAmount = wiki.getMetaData().getNumberOfPages();
 			
-			folderMeta.add("completeWiki");
 		} else {
 			Category cat = wiki.getCategory(category);
 			pages = cat.getArticles();
 			pageAmount = cat.getNumberOfPages();
-			folderMeta.add("category:"+category);
 		}
 		
 		if (buildGraph) {
 			revNet = new RevisionNetwork(wiki, revApi, pathToFolder);
-			folderMeta.add("graphdata");
 		}
 		
 		if (buildIndex) {
 			indexer = new DumpIndexer(revApi, pathToFolder);
-			folderMeta.add("index");
 		}
 	}
 	

@@ -1,32 +1,33 @@
 package main;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections.bag.SynchronizedSortedBag;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.graphframes.GraphFrame;
+import org.apache.spark.sql.functions;
 
-import info.collide.nlpwikinetgen.type.BasicNode;
 import info.collide.nlpwikinetgen.type.Edge;
 import info.collide.nlpwikinetgen.type.Node;
 
 public class GraphBuilder {
 	
-	public static void main(String[] args) {
+	public GraphBuilder() {
 		
-		SparkConf conf = new SparkConf().setAppName("NLPWikiNetGen").setMaster("local");
-		JavaSparkContext sc = new JavaSparkContext(conf);
+	}
+	
+	public static void main(String[] args) {
 		
 		SparkSession spark = SparkSession.builder()
 								.appName("NLPWikiNetGen")
-								.master("local")
+								.master("local[2]")
 								.getOrCreate();
 		
 		List<Node> nodes = new ArrayList<Node>();
@@ -38,10 +39,16 @@ public class GraphBuilder {
 		Dataset<Row> edgesDF = spark.createDataFrame(edges, Edge.class);
 		
 		GraphFrame gf = new GraphFrame(nodesDF, edgesDF);
-		gf.inDegrees().show();
+		nodesDF.cache();
+		edgesDF.cache();
+		
+		nodesDF.printSchema();
+		edgesDF.printSchema();
+
+		gf.inDegrees().sort(org.apache.spark.sql.functions.desc("inDegree")).show();
+		edgesDF.show();
 		
 		spark.stop();
-		
 	}
 	
 	private static ArrayList<Node> deserializeNodes() {

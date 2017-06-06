@@ -23,9 +23,16 @@ import scala.annotation.meta.param;
 
 public class RDDFilter {
 	
+	private ArrayList<Node> nodes;
+	private JavaRDD<Node> nodesRDD;
+	
 	SparkConf conf = new SparkConf().setAppName("NLPWikiNetGen").setMaster("local");
 	JavaSparkContext sc = new JavaSparkContext(conf);
 	
+	public RDDFilter(ArrayList<Node> nodes) {
+		this.nodes = nodes;
+		nodesRDD = sc.parallelize(nodes);
+	}
 	
 	public void filterRDD() {
 		JavaPairRDD<Integer, Node> nodes = JavaPairRDD.fromJavaRDD(sc.objectFile("data/nodesRDD"));
@@ -75,24 +82,4 @@ public class RDDFilter {
 	    }
 	    file.delete();
 	}
-	
-	
-	
-	
-//	Graph<Node, String> wikiGraph = new Graph<Node,String>();
-//	
-//	public EdgeRDD edgesToRDD(List<Edge> edges) {
-//		
-//		JavaRDD<Edge> rdd = sc.parallelize(edges);
-//		EdgeRDD erdd = EdgeRDD.fromEdges(arg0, arg1, arg2);
-//		return erdd;
-//	}
-//	
-//	public VertexRDD<Node> nodesToRDD(List<Node> nodes) {
-//		JavaRDD<Node> rdd = sc.parallelize(nodes);
-//		VertexRDD vrdd = VertexRDD.fro
-//		
-//		return 
-//	}
-
 }

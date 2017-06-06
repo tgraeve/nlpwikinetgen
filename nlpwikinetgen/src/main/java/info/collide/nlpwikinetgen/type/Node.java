@@ -1,6 +1,8 @@
 package info.collide.nlpwikinetgen.type;
 
-public class Node {
+import java.io.Serializable;
+
+public class Node implements Serializable{
 
 	/**
 	 * 
@@ -10,6 +12,7 @@ public class Node {
 	private String pageId;
 	
 	public Node (String id, String pageId) {
+		super();
 		this.id = id;
 		this.pageId = pageId;
 	}
