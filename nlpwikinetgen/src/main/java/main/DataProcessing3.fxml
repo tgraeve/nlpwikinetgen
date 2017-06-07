@@ -411,7 +411,7 @@
                   </SplitPane>
                   <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
                      <children>
-                        <Button alignment="CENTER" mnemonicParsing="false" text="Filter Graph">
+                        <Button fx:id="btnFilterGraph" alignment="CENTER" mnemonicParsing="false" onAction="#filterGraph" text="Filter Graph">
                            <HBox.margin>
                               <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                            </HBox.margin>

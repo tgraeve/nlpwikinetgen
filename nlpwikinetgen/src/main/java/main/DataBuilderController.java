@@ -112,9 +112,10 @@ public class DataBuilderController implements Initializable {
 	private Text tStatus;
 	@FXML
 	private ProgressBar pbGenerating;
-	
 	@FXML
 	private TreeView<String> tvExFilters;
+	@FXML
+	private Button btnFilterGraph;
 	
 	public void generate(ActionEvent e) throws IOException {
 		boolean wholeWiki = cbWholeWiki.isSelected();
@@ -276,5 +277,9 @@ public class DataBuilderController implements Initializable {
 		boxOld.setVisible(false);
 		boxNew.setVisible(true);
 		boxNew.toFront();
+	}
+	
+	public void filterGraph(Event e) {
+		
 	}
 }
