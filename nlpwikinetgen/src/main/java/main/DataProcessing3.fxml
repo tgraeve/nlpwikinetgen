@@ -315,7 +315,7 @@
                         </ScrollPane>
                         <StackPane fx:id="stackParamGB">
                            <children>
-                              <VBox fx:id="WikiMinorFlagGB" visible="false">
+                              <VBox fx:id="WikiMinorFlag" visible="false">
                                  <children>
                                     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Wiki Minor Flag">
                                        <VBox.margin>
@@ -328,7 +328,7 @@
                                     <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                                  </padding>
                               </VBox>
-                              <VBox fx:id="CharacterLengthDifferenceGB" layoutX="10.0" layoutY="10.0" visible="false">
+                              <VBox fx:id="CharacterLengthDifference" layoutX="10.0" layoutY="10.0" visible="false">
                                  <children>
                                     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Character Length Difference">
                                        <VBox.margin>
@@ -351,7 +351,7 @@
                                     <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                                  </padding>
                               </VBox>
-                              <VBox fx:id="WordNGramJaccardGB" visible="false">
+                              <VBox fx:id="WordNGramJaccardGB">
                                  <children>
                                     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Word N-Gram Jaccard Measure">
                                        <VBox.margin>
@@ -370,7 +370,7 @@
                                                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <TextField fx:id="tfJaccardGB" prefHeight="27.0" prefWidth="45.0" />
+                                          <TextField fx:id="tfWordNGramJaccardGB" prefHeight="27.0" prefWidth="45.0" />
                                        </children>
                                     </HBox>
                                  </children>

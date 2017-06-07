@@ -159,15 +159,15 @@ public class DataBuilder extends Task{
 //		rddBuild.nodesToRDD("nodes.tmp");
 //		rddBuild.nodesToRDD("simNodesJac.tmp");
 //		
-		RDDFilter rddMerger = new RDDFilter();
-		rddMerger.filterRDD();
+//		RDDFilter rddMerger = new RDDFilter();
+//		rddMerger.filterRDD();
 	}
 	
 	
 	public void serializeData(Object o, String content) {
 		FileOutputStream fos;
 		try {
-			fos = new FileOutputStream(pathToFolder+"/" + content + ".tmp");
+			fos = new FileOutputStream(pathToFolder+"/" + content + ".filter");
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 	        oos.writeObject(o);
 	        oos.close();

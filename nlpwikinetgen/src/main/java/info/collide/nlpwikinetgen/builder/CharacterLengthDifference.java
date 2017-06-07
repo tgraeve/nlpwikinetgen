@@ -12,7 +12,7 @@ public class CharacterLengthDifference implements GraphDataComponent {
 	RevisionApi revApi;
 	List<IntNode> nodes;
 	int prevLength;
-	String descr = "CharacterLengthDifference";
+	String descr = "Character_Length_Difference";
 	
 	public CharacterLengthDifference(RevisionApi revApi) {
 		this.revApi = revApi;

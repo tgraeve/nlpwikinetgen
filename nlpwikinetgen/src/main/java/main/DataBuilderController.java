@@ -34,14 +34,17 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -136,12 +139,12 @@ public class DataBuilderController implements Initializable {
 			}
 			if (cbWordNGramJaccard.isSelected()) {
 				SimilarityCalculator simCal = new SimilarityCalculator(revApi, new WordNGramJaccardMeasure(Integer.parseInt(tfNJaccard.getText()), cbWordNGramJaccardLower.isSelected()));
-				simCal.setDescr("WordNGramJaccard_"+Integer.parseInt(tfNJaccard.getText())+"_"+cbWordNGramJaccardLower.isSelected());
+				simCal.setDescr("Word_N-Gram_Jaccard_"+Integer.parseInt(tfNJaccard.getText())+"_"+cbWordNGramJaccardLower.isSelected());
 				filter.add(simCal);
 			}
 			if (cbWordNGramContainment.isSelected()) {
 				SimilarityCalculator simCal = new SimilarityCalculator(revApi, new WordNGramContainmentMeasure(Integer.parseInt(tfNContainment.getText())));
-				simCal.setDescr("WordNGramContainment_"+Integer.parseInt(tfNContainment.getText()));
+				simCal.setDescr("Word_N-Gram_Containment_"+Integer.parseInt(tfNContainment.getText()));
 				filter.add(simCal);
 			}
 			db.setFilter(filter);
@@ -182,6 +185,7 @@ public class DataBuilderController implements Initializable {
 		//TEST
 		tfConfigFile.setText("/Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/dbconf.txt");
 		tfOutputFolderDB.setText("/Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/data/firstGUIAttempt");
+		tfOutputFolderDB.setText("/Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/data/firstGUIAttempt");
 		tfCategory.setText("German_beer_culture");
 	}
 	
@@ -208,9 +212,31 @@ public class DataBuilderController implements Initializable {
 			tfOutputFolderDB.setText(dir.getAbsolutePath());
 			tfOutputFolderGB.setText(dir.getAbsolutePath());
 			
-			for(File file : dir.listFiles((d,name) -> (!name.equals(".DS_Store")))) {
-				TreeItem<String> filter = new TreeItem<> (file.getName().split("\\.")[0]);
+			for(File file : dir.listFiles((d,name) -> name.toLowerCase().endsWith(".filter"))) {
+				String filename = file.getName().split("\\.")[0];
+				TreeItem<String> filter = new TreeItem<> (filename.replaceAll("_", " "));
 				root.getChildren().add(filter);
+				
+				if (filename.contains("-") && stackParam.lookup(filename) == null) {
+					String fxmlTitle = filename.split("-")[0].replaceAll("_", "");
+					Scene scene = stackParamGB.getScene();
+					VBox boxNew = new VBox();
+					boxNew.setPadding(new Insets(20));
+					boxNew.setVisible(false);
+					VBox box = (VBox) scene.lookup("#"+fxmlTitle+"GB");
+					boxNew.getChildren().addAll(box.getChildren());
+					boxNew.setId(filename.replaceAll("-", "").replaceAll("_", ""));
+					((Text)boxNew.getChildren().get(0)).setText(filename.replaceAll("_", " "));
+					
+					if (boxNew.lookup("#cb"+fxmlTitle+"GB") != null) {
+						boxNew.lookup("#cb"+fxmlTitle+"GB").setId("cb"+filename.replaceAll("-", "_"));
+						System.out.println("cb"+filename.replaceAll("-", "_"));
+					}
+					if (boxNew.lookup("#tf"+fxmlTitle+"GB") != null) {
+						boxNew.lookup("#tf"+fxmlTitle+"GB").setId("tf"+filename.replaceAll("-", "_"));
+					}
+					stackParamGB.getChildren().add(boxNew);
+				}
 			}
 			
 			tvExFilters.setRoot(root);
@@ -243,9 +269,9 @@ public class DataBuilderController implements Initializable {
 	public void tvSelectionGB(Event e) throws IOException {
 		paramPanes = stackParamGB.getChildren();
 		TreeItem<String> item = tvExFilters.getSelectionModel().getSelectedItem();
-		String fxmlTitle = item.getValue().split("_")[0];
+		String fxmlTitle = item.getValue().replaceAll(" ", "").replaceAll("-", "");
 		Scene scene = stackParamGB.getScene();
-		VBox boxNew = (VBox) scene.lookup("#"+fxmlTitle+"GB");
+		VBox boxNew = (VBox) scene.lookup("#"+fxmlTitle);
 		VBox boxOld = (VBox) paramPanes.get(paramPanes.size()-1);
 		boxOld.setVisible(false);
 		boxNew.setVisible(true);

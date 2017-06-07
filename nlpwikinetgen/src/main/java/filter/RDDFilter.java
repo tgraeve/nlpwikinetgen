@@ -25,17 +25,19 @@ public class RDDFilter {
 	
 	private ArrayList<Node> nodes;
 	private JavaRDD<Node> nodesRDD;
+	private JavaPairRDD<Integer, Node> nodePairs;
 	
 	SparkConf conf = new SparkConf().setAppName("NLPWikiNetGen").setMaster("local");
 	JavaSparkContext sc = new JavaSparkContext(conf);
 	
 	public RDDFilter(ArrayList<Node> nodes) {
 		this.nodes = nodes;
-		nodesRDD = sc.parallelize(nodes);
+		JavaRDD<Node> nodesRDD = sc.parallelize(nodes);
+		JavaPairRDD<Integer, Node> nodePairs = nodesRDD.mapToPair(n -> new Tuple2(n.getId(), n));
 	}
 	
-	public void filterRDD() {
-		JavaPairRDD<Integer, Node> nodes = JavaPairRDD.fromJavaRDD(sc.objectFile("data/nodesRDD"));
+	public void filterRDD(ArrayList<> filter) {
+		
 		JavaPairRDD<Integer, DoubleNode> simNodes = JavaPairRDD.fromJavaRDD(sc.objectFile("data/simNodesJacRDD"));
 		JavaPairRDD<Integer, DoubleNode> filteredSim = simNodes.filter(p -> p._2.getValue() < 0.9);
 		List<Integer> keys = filteredSim.keys().collect();
@@ -46,40 +48,40 @@ public class RDDFilter {
 		}
 	}
 	
-	public void nodesToRDD(String source) {
-		File file = new File("data/"+ source.split("\\.")[0] + "RDD");
-		ArrayList<BasicNode> nodes = deserialize(source);
-
-		JavaRDD<BasicNode> nodesRDD = sc.parallelize(nodes);
-		
-		if (file.exists() && file.isDirectory()) {
-			deleteDir(file);
-		}
-		nodesRDD.saveAsTextFile("data/"+ source.split("\\.")[0] + "RDD");
-	}
-	
-	private ArrayList<BasicNode> deserialize(String source) {
-		FileInputStream fis;
-		ArrayList<BasicNode> nodes = null;
-		try {
-			fis = new FileInputStream("data/" + source);
-			ObjectInputStream ois = new ObjectInputStream(fis);
-	        nodes = (ArrayList<BasicNode>) ois.readObject();
-	        ois.close();
-		} catch (Exception e) {
-			System.out.println("Failed deserializing. Please retry.");
-			e.printStackTrace();
-		}
-		return nodes;
-	}
-	
-	private void deleteDir(File file) {
-	    File[] contents = file.listFiles();
-	    if (contents != null) {
-	        for (File f : contents) {
-	            deleteDir(f);
-	        }
-	    }
-	    file.delete();
-	}
+//	public void nodesToRDD(String source) {
+//		File file = new File("data/"+ source.split("\\.")[0] + "RDD");
+//		ArrayList<BasicNode> nodes = deserialize(source);
+//
+//		JavaRDD<BasicNode> nodesRDD = sc.parallelize(nodes);
+//		
+//		if (file.exists() && file.isDirectory()) {
+//			deleteDir(file);
+//		}
+//		nodesRDD.saveAsTextFile("data/"+ source.split("\\.")[0] + "RDD");
+//	}
+//	
+//	private ArrayList<BasicNode> deserialize(String source) {
+//		FileInputStream fis;
+//		ArrayList<BasicNode> nodes = null;
+//		try {
+//			fis = new FileInputStream("data/" + source);
+//			ObjectInputStream ois = new ObjectInputStream(fis);
+//	        nodes = (ArrayList<BasicNode>) ois.readObject();
+//	        ois.close();
+//		} catch (Exception e) {
+//			System.out.println("Failed deserializing. Please retry.");
+//			e.printStackTrace();
+//		}
+//		return nodes;
+//	}
+//	
+//	private void deleteDir(File file) {
+//	    File[] contents = file.listFiles();
+//	    if (contents != null) {
+//	        for (File f : contents) {
+//	            deleteDir(f);
+//	        }
+//	    }
+//	    file.delete();
+//	}
 }
