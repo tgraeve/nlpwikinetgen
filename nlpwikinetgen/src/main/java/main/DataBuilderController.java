@@ -1,5 +1,6 @@
 package main;
 
+import java.awt.Checkbox;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -280,6 +281,16 @@ public class DataBuilderController implements Initializable {
 	}
 	
 	public void filterGraph(Event e) {
-		
+		List<String> enabledFilters = new ArrayList<>();
+		for(Node box : stackParamGB.getChildren()) {
+			for(Node child : ((VBox)box).getChildren()) {
+				if(child instanceof CheckBox) {
+					if(((CheckBox)child).isSelected()) {
+						enabledFilters.add(((Text)((VBox)box).getChildren().get(0)).getText());
+						System.out.println(((Text)((VBox)box).getChildren().get(0)).getText());
+					}
+				}
+			}
+		}
 	}
 }
