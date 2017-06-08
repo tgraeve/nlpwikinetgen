@@ -12,10 +12,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 
 import javax.swing.event.ChangeEvent;
 import javax.xml.transform.Source;
 
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.jetbrains.annotations.TestOnly;
 
 import com.sun.javafx.geom.BaseBounds;
@@ -53,12 +56,13 @@ import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-
+import scala.Tuple2;
 import info.collide.nlpwikinetgen.builder.*;
 
 public class DataBuilderController implements Initializable {
 	
 	private DataBuilder db;
+	private GraphBuilder gb;
 	private ObservableList<Node> paramPanes;
 	
 	@FXML
@@ -110,6 +114,8 @@ public class DataBuilderController implements Initializable {
 	@FXML
 	private StackPane stackParamGB;
 	@FXML
+	private TextField tfWordNGramJaccardGB;
+	@FXML
 	private Text tStatus;
 	@FXML
 	private ProgressBar pbGenerating;
@@ -141,12 +147,12 @@ public class DataBuilderController implements Initializable {
 			}
 			if (cbWordNGramJaccard.isSelected()) {
 				SimilarityCalculator simCal = new SimilarityCalculator(revApi, new WordNGramJaccardMeasure(Integer.parseInt(tfNJaccard.getText()), cbWordNGramJaccardLower.isSelected()));
-				simCal.setDescr("Word_N-Gram_Jaccard_"+Integer.parseInt(tfNJaccard.getText())+"_"+cbWordNGramJaccardLower.isSelected());
+				simCal.setDescr("Word_N_Gram_Jaccard_"+Integer.parseInt(tfNJaccard.getText())+"_"+cbWordNGramJaccardLower.isSelected());
 				filter.add(simCal);
 			}
 			if (cbWordNGramContainment.isSelected()) {
 				SimilarityCalculator simCal = new SimilarityCalculator(revApi, new WordNGramContainmentMeasure(Integer.parseInt(tfNContainment.getText())));
-				simCal.setDescr("Word_N-Gram_Containment_"+Integer.parseInt(tfNContainment.getText()));
+				simCal.setDescr("Word_N_Gram_Containment_"+Integer.parseInt(tfNContainment.getText()));
 				filter.add(simCal);
 			}
 			db.setFilter(filter);
@@ -221,21 +227,21 @@ public class DataBuilderController implements Initializable {
 				
 				if (filename.contains("-") && stackParam.lookup(filename) == null) {
 					String fxmlTitle = filename.split("-")[0].replaceAll("_", "");
+					String newId = filename.replaceAll("_", "").replaceAll("-", "_");
 					Scene scene = stackParamGB.getScene();
 					VBox boxNew = new VBox();
 					boxNew.setPadding(new Insets(20));
 					boxNew.setVisible(false);
 					VBox box = (VBox) scene.lookup("#"+fxmlTitle+"GB");
 					boxNew.getChildren().addAll(box.getChildren());
-					boxNew.setId(filename.replaceAll("-", "").replaceAll("_", ""));
+					boxNew.setId(newId+"GB");
 					((Text)boxNew.getChildren().get(0)).setText(filename.replaceAll("_", " "));
 					
 					if (boxNew.lookup("#cb"+fxmlTitle+"GB") != null) {
-						boxNew.lookup("#cb"+fxmlTitle+"GB").setId("cb"+filename.replaceAll("-", "_"));
-						System.out.println("cb"+filename.replaceAll("-", "_"));
+						boxNew.lookup("#cb"+fxmlTitle+"GB").setId("cb"+newId);
 					}
 					if (boxNew.lookup("#tf"+fxmlTitle+"GB") != null) {
-						boxNew.lookup("#tf"+fxmlTitle+"GB").setId("tf"+filename.replaceAll("-", "_"));
+						boxNew.lookup("#tf"+fxmlTitle+"GB").setId("tf"+newId);
 					}
 					stackParamGB.getChildren().add(boxNew);
 				}
@@ -271,9 +277,10 @@ public class DataBuilderController implements Initializable {
 	public void tvSelectionGB(Event e) throws IOException {
 		paramPanes = stackParamGB.getChildren();
 		TreeItem<String> item = tvExFilters.getSelectionModel().getSelectedItem();
-		String fxmlTitle = item.getValue().replaceAll(" ", "").replaceAll("-", "");
+		String fxmlTitle = item.getValue().replaceAll(" ", "").replaceAll("-", "_");
 		Scene scene = stackParamGB.getScene();
-		VBox boxNew = (VBox) scene.lookup("#"+fxmlTitle);
+		System.out.println(fxmlTitle);
+		VBox boxNew = (VBox) scene.lookup("#"+fxmlTitle+"GB");
 		VBox boxOld = (VBox) paramPanes.get(paramPanes.size()-1);
 		boxOld.setVisible(false);
 		boxNew.setVisible(true);
@@ -281,16 +288,30 @@ public class DataBuilderController implements Initializable {
 	}
 	
 	public void filterGraph(Event e) {
+		if(gb==null) {
+			gb = new GraphBuilder(tfOutputFolderGB.getText());
+		}
+		
 		List<String> enabledFilters = new ArrayList<>();
+		List<Dataset<Row>> minor = new ArrayList<Dataset<Row>>();
+		
 		for(Node box : stackParamGB.getChildren()) {
 			for(Node child : ((VBox)box).getChildren()) {
 				if(child instanceof CheckBox) {
 					if(((CheckBox)child).isSelected()) {
-						enabledFilters.add(((Text)((VBox)box).getChildren().get(0)).getText());
-						System.out.println(((Text)((VBox)box).getChildren().get(0)).getText());
+						String title = ((Text)((VBox)box).getChildren().get(0)).getText().replaceAll(" ", "_");
+						System.out.println(title);
+						enabledFilters.add(title);
+						TextField tf = (TextField) stackParam.getScene().lookup("#tf"+title.replaceAll("_", "").replaceAll("-", "_"));
+						if (tf!=null && !tf.getText().isEmpty()) {
+							minor.add(gb.getMinorNodes(title, tf.getText()));
+						} else {
+							minor.add(gb.getMinorNodes(((Text)((VBox)box).getChildren().get(0)).getText().replaceAll(" ", "_"), null));
+						}
 					}
 				}
 			}
 		}
+		
 	}
 }

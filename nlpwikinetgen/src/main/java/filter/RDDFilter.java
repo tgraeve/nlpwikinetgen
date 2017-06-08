@@ -36,7 +36,7 @@ public class RDDFilter {
 		JavaPairRDD<Integer, Node> nodePairs = nodesRDD.mapToPair(n -> new Tuple2(n.getId(), n));
 	}
 	
-	public void filterRDD(ArrayList<> filter) {
+	public void filterRDD(ArrayList<NodeFilter> filter) {
 		
 		JavaPairRDD<Integer, DoubleNode> simNodes = JavaPairRDD.fromJavaRDD(sc.objectFile("data/simNodesJacRDD"));
 		JavaPairRDD<Integer, DoubleNode> filteredSim = simNodes.filter(p -> p._2.getValue() < 0.9);
@@ -46,6 +46,12 @@ public class RDDFilter {
 		for(Tuple2<Integer, Node> t : reduced.collect()) {
 			System.out.println(t._2.getId());
 		}
+	}
+	
+	public ArrayList<BasicNode> reduceNodesInt(ArrayList<BasicNode> nodes, int threshold) {
+		JavaRDD<BasicNode> nodesRDD = sc.parallelize(nodes);
+		JavaPairRDD<Integer, BasicNode> nodepairsRDD = nodesRDD.mapToPair(n -> new Tuple2(n.getId(), n));
+		return nodes;
 	}
 	
 //	public void nodesToRDD(String source) {

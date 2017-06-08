@@ -61,6 +61,7 @@ public class RevisionNetwork implements GraphDataComponent {
 		this.pageId = pageId;
 		this.title = title;
 		
+		prevId = null;
 		linkList = new LinkedList<String>();
 	}
 	
