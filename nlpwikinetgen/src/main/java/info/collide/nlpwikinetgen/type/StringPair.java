@@ -1,37 +1,27 @@
 package info.collide.nlpwikinetgen.type;
 
 public class StringPair {
-	int source;
+	String s1;
+	String s2;
 
-    int destination;
-
-    public StringPair(int source, int destination) {
-        this.source = source;
-        this.destination = destination;
-    }
-
-    public int getSource() {
-        return source;
-    }
-
-    public int getDestination() {
-        return destination;
+    public StringPair(String s1, String s2) {
+        this.s1 = s1;
+        this.s2 = s2;
     }
     
-    @Override
-	public boolean equals(Object o) {
-        boolean equals = false;
-        if (o instanceof StringPair) {
-             StringPair sp = (StringPair) o;
-             if (getSource()==sp.getSource() && getDestination()==sp.getDestination()) {
-                 equals = true;
-             }
-        }
-        return equals;
-    }
-    
-    @Override
-	public int hashCode() {
-        return ("<" + getSource() + ">,<" + getDestination() + ">").hashCode();
-    }
+    public String getS1() {
+		return s1;
+	}
+
+	public void setS1(String s1) {
+		this.s1 = s1;
+	}
+
+	public String getS2() {
+		return s2;
+	}
+
+	public void setS2(String s2) {
+		this.s2 = s2;
+	}
 }

@@ -58,6 +58,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import scala.Tuple2;
 import info.collide.nlpwikinetgen.builder.*;
+import info.collide.nlpwikinetgen.type.StringPair;
 
 public class DataBuilderController implements Initializable {
 	
@@ -292,8 +293,8 @@ public class DataBuilderController implements Initializable {
 			gb = new GraphBuilder(tfOutputFolderGB.getText());
 		}
 		
-		List<String> enabledFilters = new ArrayList<>();
-		List<Dataset<Row>> minor = new ArrayList<Dataset<Row>>();
+		List<StringPair> enabledFilters = new ArrayList<StringPair>();
+//		List<Dataset<Row>> minor = new ArrayList<Dataset<Row>>();
 		
 		for(Node box : stackParamGB.getChildren()) {
 			for(Node child : ((VBox)box).getChildren()) {
@@ -301,17 +302,18 @@ public class DataBuilderController implements Initializable {
 					if(((CheckBox)child).isSelected()) {
 						String title = ((Text)((VBox)box).getChildren().get(0)).getText().replaceAll(" ", "_");
 						System.out.println(title);
-						enabledFilters.add(title);
 						TextField tf = (TextField) stackParam.getScene().lookup("#tf"+title.replaceAll("_", "").replaceAll("-", "_"));
 						if (tf!=null && !tf.getText().isEmpty()) {
-							minor.add(gb.getMinorNodes(title, tf.getText()));
+							enabledFilters.add(new StringPair(title, tf.getText()));
+//							minor.add(gb.getMinorNodes(title, tf.getText()));
 						} else {
-							minor.add(gb.getMinorNodes(((Text)((VBox)box).getChildren().get(0)).getText().replaceAll(" ", "_"), null));
+							enabledFilters.add(new StringPair(title, null));
+//							minor.add(gb.getMinorNodes(((Text)((VBox)box).getChildren().get(0)).getText().replaceAll(" ", "_"), null));
 						}
 					}
 				}
 			}
 		}
-		
+		gb.filterNodes(enabledFilters);
 	}
 }
