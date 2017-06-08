@@ -1,6 +1,7 @@
 package main;
 
 import java.io.FileInputStream;
+
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import org.apache.spark.sql.catalyst.plans.logical.Distinct;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import org.apache.log4j.*;
 import org.graphframes.GraphFrame;
 
 import info.collide.nlpwikinetgen.type.BasicNode;
@@ -29,7 +31,7 @@ public class GraphBuilder {
 	Dataset<Row> dfNodes;
 	Dataset<Row> dfEdges;
 	static GraphFrame gf;
-	public static String pathToFolder;
+	public String pathToFolder;
 	
 	public GraphBuilder(String pathToFolder) {
 		this.pathToFolder = pathToFolder;
@@ -38,6 +40,8 @@ public class GraphBuilder {
 				.appName("NLPWikiNetGen")
 				.master("local[2]")
 				.getOrCreate();
+		
+		Logger.getLogger("org").setLevel(Level.WARN);
 		
 		nodes = new ArrayList<Node>();
 		edges = new ArrayList<Edge>();
@@ -59,27 +63,21 @@ public class GraphBuilder {
 			df = spark.createDataFrame(nodes, DoubleNode.class);
 			minor = df.filter("value>"+threshold);
 		}
-		
 		return minor;
 	}
 	
-	private boolean testNodeLink(String id) {
-		boolean erasable = true;
-		Dataset<Row> dstId = gf.edges().filter("dst="+id).cache();
-		if (dstId.filter("type='link'").count()>0) {
-			erasable = false;
-		}
-		if (dstId.filter("type='revision'").count()<1) {
-			erasable = false;
-		}
-		System.out.println("danach");
-		return erasable;
+	private Dataset<Row> verifyMinorNodes(Dataset<Row> minorNodes) {
+		Dataset<Row> linkDst = dfEdges.filter("type='link'").select("dst");
+		Dataset<Row> verifiedNodes = minorNodes.except(linkDst);
+		Dataset<Row> revDst = dfEdges.filter("type='revision'").select("dst");
+		verifiedNodes = verifiedNodes.except(dfNodes.select("id").except(revDst));
+		return verifiedNodes;
 	}
 	
 	public void filterNodes(List<StringPair> filters) {
 		Dataset<Row> minorNodes = getMergedMinorNodes(filters);
+		minorNodes = verifyMinorNodes(minorNodes);
 		Dataset<Row> remainingNodes = dfNodes.select("id").except(minorNodes);
-		
 		System.out.println("NODES: "+dfNodes.count()+" MINUS "+minorNodes.count()+" IS "+remainingNodes.count());
 	}
 	
@@ -89,14 +87,13 @@ public class GraphBuilder {
 
 		for(StringPair s : filters) {
 			mergedNodes = mergedNodes.union(getMinorNodes(s.getS1(), s.getS2()).select("id"));
-//			mergedNodes.collect();
-			mergedNodes.cache();
+			mergedNodes.cache(); 
 		}
 		mergedNodes = mergedNodes.distinct();
 		return mergedNodes;
 	}
 	
-	public static Dataset<Row> getMinorNodes(String data, Object threshold) {
+	public Dataset<Row> getMinorNodes(String data, Object threshold) {
 		Dataset<Row> df = null;
 		Dataset<Row> minor = null;
 		List<BasicNode> nodes = deserialize(data);
@@ -113,7 +110,7 @@ public class GraphBuilder {
 		return minor;
 	}
 	
-	private static ArrayList<BasicNode> deserialize(String filter) {
+	private ArrayList<BasicNode> deserialize(String filter) {
 		FileInputStream fis;
 		ArrayList<BasicNode> nodes = null;
 		try {
@@ -129,7 +126,7 @@ public class GraphBuilder {
 		return nodes;
 	}
 	
-	private static ArrayList<Node> deserializeNodes(String pathToFolder) {
+	private ArrayList<Node> deserializeNodes(String pathToFolder) {
 		FileInputStream fis;
 		ArrayList<Node> nodes = null;
 		try {
@@ -144,7 +141,7 @@ public class GraphBuilder {
 		return nodes;
 	}
 	
-	private static ArrayList<Edge> deserializeEdges(String pathToFolder) {
+	private ArrayList<Edge> deserializeEdges(String pathToFolder) {
 		FileInputStream fis;
 		ArrayList<Edge> edges = null;
 		try {
@@ -158,7 +155,4 @@ public class GraphBuilder {
 		}
 		return edges;
 	}
-	
-	
-
 }
