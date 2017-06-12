@@ -411,6 +411,12 @@
                         </StackPane>
                      </items>
                   </SplitPane>
+                  <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                     <children>
+                        <Label text="Keyword filter: " />
+                        <TextArea fx:id="taLucene" minHeight="14.0" prefHeight="14.0" prefWidth="481.0" promptText="Use comma to separate keywords." />
+                     </children>
+                  </HBox>
                   <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
                      <children>
                         <Button fx:id="btnFilterGraph" alignment="CENTER" mnemonicParsing="false" onAction="#filterGraph" text="Filter Graph">

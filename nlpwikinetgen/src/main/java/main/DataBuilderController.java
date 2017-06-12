@@ -1,6 +1,5 @@
 package main;
 
-import java.awt.Checkbox;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -17,15 +16,10 @@ import java.util.regex.Pattern;
 import javax.swing.event.ChangeEvent;
 import javax.xml.transform.Source;
 
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.jetbrains.annotations.TestOnly;
-
-import com.sun.javafx.geom.BaseBounds;
-import com.sun.javafx.geom.transform.BaseTransform;
-import com.sun.javafx.jmx.MXNodeAlgorithm;
-import com.sun.javafx.jmx.MXNodeAlgorithmContext;
-import com.sun.javafx.sg.prism.NGNode;
 
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
@@ -45,6 +39,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -58,6 +53,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import scala.Tuple2;
 import info.collide.nlpwikinetgen.builder.*;
+import info.collide.nlpwikinetgen.lucene.KeywordFilter;
 import info.collide.nlpwikinetgen.type.StringPair;
 
 public class DataBuilderController implements Initializable {
@@ -124,6 +120,8 @@ public class DataBuilderController implements Initializable {
 	private TreeView<String> tvExFilters;
 	@FXML
 	private Button btnFilterGraph;
+	@FXML
+	private TextArea taLucene;
 	
 	public void generate(ActionEvent e) throws IOException {
 		boolean wholeWiki = cbWholeWiki.isSelected();
@@ -288,13 +286,13 @@ public class DataBuilderController implements Initializable {
 		boxNew.toFront();
 	}
 	
-	public void filterGraph(Event e) {
+	public void filterGraph(Event e) throws IOException, ParseException {
 		if(gb==null) {
 			gb = new GraphBuilder(tfOutputFolderGB.getText());
 		}
 		
 		List<StringPair> enabledFilters = new ArrayList<StringPair>();
-//		List<Dataset<Row>> minor = new ArrayList<Dataset<Row>>();
+		ArrayList<String> keyRev = null;
 		
 		for(Node box : stackParamGB.getChildren()) {
 			for(Node child : ((VBox)box).getChildren()) {
@@ -314,6 +312,11 @@ public class DataBuilderController implements Initializable {
 				}
 			}
 		}
-		gb.filterNodes(enabledFilters);
+		if(!taLucene.getText().isEmpty()) {
+			KeywordFilter kf = new KeywordFilter(tfOutputFolderGB.getText());
+			keyRev = kf.getHits(taLucene.getText());
+		}
+		
+		gb.generateGraph(enabledFilters, keyRev);
 	}
 }

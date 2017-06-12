@@ -17,10 +17,10 @@ public class GMLWriter {
 	}
 	
 	public GMLWriter(String outputDir) throws IOException {
-    	writer = new BufferedWriter(new FileWriter(outputDir));
+    	writer = new BufferedWriter(new FileWriter(outputDir+"/filteredGraph.gml"));
 	}
 	
-	public void writeFile(List<Node> vertices, List<Edge> arcs) throws IOException {
+	public void writeFile(List<Node> nodes, List<Edge> edges) throws IOException {
 		// start gml file
         writer.write("graph [");
         writer.newLine();
@@ -28,26 +28,24 @@ public class GMLWriter {
         writer.newLine();
         
         // write nodes
-        for(Node v : vertices) {
+        for(Node v : nodes) {
         	writer.write("\tnode [");
             writer.newLine();
             writer.write("\t\tid "+v.getId());
             writer.newLine();
             writer.write("\t\tpageid "+v.getPageId());
             writer.newLine();
-            writer.write("\t\tlabel \""+v.getName()+"\"");
-            writer.newLine();
             writer.write("\t]");
             writer.newLine();
         }
-        for(Edge e : arcs) {
+        for(Edge e : edges) {
         	writer.write("\tedge [");
         	writer.newLine();
-        	writer.write("\t\ttype "+e.getType());
+        	writer.write("\t\ttype \""+e.getType()+"\"");
         	writer.newLine();
-        	writer.write("\t\tsource "+e.getSource());
+        	writer.write("\t\tsource "+e.getSrc());
         	writer.newLine();
-        	writer.write("\t\ttarget "+e.getDestination());
+        	writer.write("\t\ttarget "+e.getDst());
         	writer.newLine();
         	writer.write("\t]");
         	writer.newLine();
