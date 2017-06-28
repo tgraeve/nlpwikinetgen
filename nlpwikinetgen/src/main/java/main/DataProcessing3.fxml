@@ -48,12 +48,12 @@
                                     <Tooltip text="Select an output folder to store graph and annotation data" />
                                  </tooltip>
                               </Label>
-                              <TextField fx:id="tfOutputFolderDB" HBox.hgrow="ALWAYS">
+                              <TextField fx:id="tfOutputFolderDB" onAction="#loadOutputFolderDB" HBox.hgrow="ALWAYS">
                                  <HBox.margin>
                                     <Insets right="10.0" />
                                  </HBox.margin>
                               </TextField>
-                              <Button fx:id="btnOutputFolder" mnemonicParsing="false" onAction="#loadOutputFolder" text="Choose" />
+                              <Button fx:id="btnOutputFolder" mnemonicParsing="false" onAction="#loadOutputFolderDB" text="Choose" />
                            </children>
                            <padding>
                               <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -286,12 +286,12 @@
                                     <Insets right="5.0" />
                                  </HBox.margin>
                               </Label>
-                              <TextField fx:id="tfOutputFolderGB" onAction="#loadOutputFolder" HBox.hgrow="ALWAYS">
+                              <TextField fx:id="tfOutputFolderGB" onAction="#loadOutputFolderGB" HBox.hgrow="ALWAYS">
                                  <HBox.margin>
                                     <Insets right="10.0" />
                                  </HBox.margin>
                               </TextField>
-                              <Button fx:id="btnDataFolder" mnemonicParsing="false" onAction="#loadOutputFolder" text="Choose" />
+                              <Button fx:id="btnDataFolder" mnemonicParsing="false" onAction="#loadOutputFolderGB" text="Choose" />
                            </children>
                            <padding>
                               <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -353,7 +353,7 @@
                                     <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                                  </padding>
                               </VBox>
-                              <VBox fx:id="WordNGramJaccardGB">
+                              <VBox fx:id="WordNGramJaccardGB" visible="false">
                                  <children>
                                     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Word N-Gram Jaccard Measure">
                                        <VBox.margin>

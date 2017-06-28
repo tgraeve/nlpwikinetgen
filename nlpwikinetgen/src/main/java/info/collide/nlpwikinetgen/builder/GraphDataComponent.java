@@ -1,9 +1,6 @@
 package info.collide.nlpwikinetgen.builder;
 
 import java.sql.Timestamp;
-import java.util.List;
-
-import info.collide.nlpwikinetgen.type.BasicNode;
 
 public interface GraphDataComponent {
 	

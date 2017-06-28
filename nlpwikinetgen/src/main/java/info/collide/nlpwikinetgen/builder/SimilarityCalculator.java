@@ -1,24 +1,17 @@
 package info.collide.nlpwikinetgen.builder;
 
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexWriter;
 import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
-import de.tudarmstadt.ukp.wikipedia.api.Page;
 import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
-import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
-import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import dkpro.similarity.algorithms.api.SimilarityException;
 import dkpro.similarity.algorithms.api.TextSimilarityMeasure;
-import dkpro.similarity.algorithms.lexical.ngrams.WordNGramJaccardMeasure;
 import info.collide.nlpwikinetgen.type.DoubleNode;
 
 public class SimilarityCalculator implements GraphDataComponent {
@@ -65,6 +58,7 @@ public class SimilarityCalculator implements GraphDataComponent {
 		prevText = text;
 	}
 
+	@Override
 	public List<DoubleNode> close() {
 		return nodes;
 	}

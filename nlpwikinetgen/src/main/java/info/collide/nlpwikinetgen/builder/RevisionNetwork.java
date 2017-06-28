@@ -1,33 +1,19 @@
 package info.collide.nlpwikinetgen.builder;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.ObjectOutputStream;
 
-import java.sql.SQLException;
 import java.sql.Timestamp;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import de.tudarmstadt.ukp.wikipedia.api.Category;
-import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
-import de.tudarmstadt.ukp.wikipedia.api.Page;
 import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
-import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
-import de.tudarmstadt.ukp.wikipedia.api.exception.WikiTitleParsingException;
-import de.tudarmstadt.ukp.wikipedia.api.WikiConstants.Language;
-import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 
-import info.collide.nlpwikinetgen.helper.*;
 import info.collide.nlpwikinetgen.type.Edge;
 import info.collide.nlpwikinetgen.type.Node;
 
@@ -57,6 +43,7 @@ public class RevisionNetwork implements GraphDataComponent {
 		edges = new ArrayList<Edge>();
 	}
 	
+	@Override
 	public void nextPage(String pageId, String title) {
 		this.pageId = pageId;
 		this.title = title;
@@ -65,6 +52,7 @@ public class RevisionNetwork implements GraphDataComponent {
 		linkList = new LinkedList<String>();
 	}
 	
+	@Override
 	public void nextRevision(String revisionId, String text, Timestamp t) {
 		// add basic node for revision, due to retrieval of follower first in second round
 		nodes.add(new Node(revisionId,pageId));
@@ -87,7 +75,12 @@ public class RevisionNetwork implements GraphDataComponent {
 	        				List<Timestamp> ts = revApi.getRevisionTimestampsBetweenTimestamps(targetPageId, revApi.getFirstDateOfAppearance(targetPageId), t);
 		        			if(ts.size() > 0) {
 		        				linkList.add(link.toLowerCase());
-			        			edges.add(new Edge(Integer.toString(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID()), revisionId, "link"));
+		        				if (!pageId.equals(Integer.toString(targetPageId))) { //check if link is loop
+				        			edges.add(new Edge(Integer.toString(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID()), revisionId, "link"));
+								}
+		        				else {
+		        					System.out.println("########## LOOP ###########");
+		        				}
 		        			}
 //	        			}
         			}
@@ -98,6 +91,7 @@ public class RevisionNetwork implements GraphDataComponent {
 		}
 	}
 	
+	@Override
 	public Object close() {
         //Serialize nodes and edges
         FileOutputStream fos;
@@ -248,11 +242,13 @@ public class RevisionNetwork implements GraphDataComponent {
         return newLinkList;
 	}
 
+	@Override
 	public void setDescr(String descr) {
 		// TODO Auto-generated method stub
 		
 	}
 
+	@Override
 	public String getDescr() {
 		// TODO Auto-generated method stub
 		return null;

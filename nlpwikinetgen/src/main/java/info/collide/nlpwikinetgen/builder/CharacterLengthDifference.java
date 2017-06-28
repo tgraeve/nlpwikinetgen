@@ -31,6 +31,7 @@ public class CharacterLengthDifference implements GraphDataComponent {
 		nodes.add(new IntNode(revisionId, difference));
 	}
 
+	@Override
 	public Object close() {
 		return nodes;
 	}

@@ -3,12 +3,9 @@ package info.collide.nlpwikinetgen.lucene;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.Collection;
-
 import org.apache.lucene.analysis.*;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.Field.Store;
@@ -19,12 +16,9 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-import de.tudarmstadt.ukp.wikipedia.api.Category;
 import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
-import de.tudarmstadt.ukp.wikipedia.api.Page;
 import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
-import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import info.collide.nlpwikinetgen.builder.GraphDataComponent;
 
@@ -70,15 +64,18 @@ public class DumpIndexer implements GraphDataComponent {
     	doc.add(article);
 	}
 	
+	@Override
 	public void nextPage(String pageId, String title) throws IOException {
 		indexWriter.commit();
 		this.pageId = pageId;
 	}
 	
+	@Override
 	public void nextRevision(String revisionId, String text, Timestamp t) throws IOException {
 		index(indexWriter, revisionId, text);
 	}
 	
+	@Override
 	public Object close() {
 		try {
 			indexWriter.close();

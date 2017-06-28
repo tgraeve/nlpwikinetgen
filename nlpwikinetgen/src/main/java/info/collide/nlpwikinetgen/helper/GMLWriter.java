@@ -50,7 +50,7 @@ public class GMLWriter {
         	writer.write("\t]");
         	writer.newLine();
         }
-        
+        writer.write("]");
         writer.flush();
         writer.close();
 	}

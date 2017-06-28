@@ -5,16 +5,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.uima.UIMAException;
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.fit.component.CasDumpWriter;
@@ -49,7 +41,6 @@ import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionIterator;
 import dkpro.ChunkTagChanger;
 import dkpro.annotator.SpotlightAnnotator;
 import dkpro.type.Concept;
-import info.collide.nlpwikinetgen.helper.*;
 
 public class RevisionConcepts {
 

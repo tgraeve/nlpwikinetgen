@@ -1,31 +1,16 @@
 package main;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.regex.Pattern;
-
-import javax.swing.event.ChangeEvent;
-import javax.xml.transform.Source;
-
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.jetbrains.annotations.TestOnly;
-
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import dkpro.similarity.algorithms.lexical.ngrams.WordNGramContainmentMeasure;
 import dkpro.similarity.algorithms.lexical.ngrams.WordNGramJaccardMeasure;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -37,21 +22,17 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import scala.Tuple2;
 import info.collide.nlpwikinetgen.builder.*;
 import info.collide.nlpwikinetgen.lucene.KeywordFilter;
 import info.collide.nlpwikinetgen.type.StringPair;
@@ -146,12 +127,12 @@ public class DataBuilderController implements Initializable {
 			}
 			if (cbWordNGramJaccard.isSelected()) {
 				SimilarityCalculator simCal = new SimilarityCalculator(revApi, new WordNGramJaccardMeasure(Integer.parseInt(tfNJaccard.getText()), cbWordNGramJaccardLower.isSelected()));
-				simCal.setDescr("Word_N_Gram_Jaccard_"+Integer.parseInt(tfNJaccard.getText())+"_"+cbWordNGramJaccardLower.isSelected());
+				simCal.setDescr("Word_N_Gram_Jaccard-"+Integer.parseInt(tfNJaccard.getText())+"-"+cbWordNGramJaccardLower.isSelected());
 				filter.add(simCal);
 			}
 			if (cbWordNGramContainment.isSelected()) {
 				SimilarityCalculator simCal = new SimilarityCalculator(revApi, new WordNGramContainmentMeasure(Integer.parseInt(tfNContainment.getText())));
-				simCal.setDescr("Word_N_Gram_Containment_"+Integer.parseInt(tfNContainment.getText()));
+				simCal.setDescr("Word_N_Gram_Containment-"+Integer.parseInt(tfNContainment.getText()));
 				filter.add(simCal);
 			}
 			db.setFilter(filter);
@@ -189,11 +170,11 @@ public class DataBuilderController implements Initializable {
 		tvOptions.setRoot(root);
 		tvOptions.setShowRoot(false);
 		
-		//TEST
-		tfConfigFile.setText("/Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/dbconf.txt");
-		tfOutputFolderDB.setText("/Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/data/firstGUIAttempt");
-		tfOutputFolderDB.setText("/Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/data/firstGUIAttempt");
-		tfCategory.setText("German_beer_culture");
+		//TEST TODO delete if running
+//		tfConfigFile.setText("/Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/dbconf.txt");
+//		tfOutputFolderDB.setText("/Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/data/firstGUIAttempt");
+//		tfOutputFolderDB.setText("/Users/Tobias/git/nlpwikinetgen/nlpwikinetgen/data/firstGUIAttempt");
+//		tfCategory.setText("German_beer_culture");
 	}
 	
 	public void loadConfigFile(ActionEvent event) {
@@ -209,14 +190,26 @@ public class DataBuilderController implements Initializable {
 		}
 	}
 	
-	public void loadOutputFolder(ActionEvent event) {
+	public void loadOutputFolderDB(ActionEvent event) {
+		DirectoryChooser dc = new DirectoryChooser();
+		dc.setInitialDirectory(new File(System.getProperty("user.dir")));
+		File dir = dc.showDialog(null);
+		
+		if (dir != null) {
+			tfOutputFolderDB.setText(dir.getAbsolutePath());
+		}
+		else {
+			System.out.println("Output directory selection failed.");
+		}
+	}
+	
+	public void loadOutputFolderGB(ActionEvent event) throws IOException {
 		DirectoryChooser dc = new DirectoryChooser();
 		dc.setInitialDirectory(new File(System.getProperty("user.dir")));
 		File dir = dc.showDialog(null);
 		TreeItem<String> root = new TreeItem<> ("Root");
 		
 		if (dir != null) {
-			tfOutputFolderDB.setText(dir.getAbsolutePath());
 			tfOutputFolderGB.setText(dir.getAbsolutePath());
 			
 			for(File file : dir.listFiles((d,name) -> name.toLowerCase().endsWith(".filter"))) {
@@ -224,25 +217,30 @@ public class DataBuilderController implements Initializable {
 				TreeItem<String> filter = new TreeItem<> (filename.replaceAll("_", " "));
 				root.getChildren().add(filter);
 				
-				if (filename.contains("-") && stackParam.lookup(filename) == null) {
+				if (filename.contains("-") && stackParamGB.lookup(filename) == null) {
 					String fxmlTitle = filename.split("-")[0].replaceAll("_", "");
 					String newId = filename.replaceAll("_", "").replaceAll("-", "_");
-					Scene scene = stackParamGB.getScene();
-					VBox boxNew = new VBox();
-					boxNew.setPadding(new Insets(20));
-					boxNew.setVisible(false);
-					VBox box = (VBox) scene.lookup("#"+fxmlTitle+"GB");
-					boxNew.getChildren().addAll(box.getChildren());
-					boxNew.setId(newId+"GB");
-					((Text)boxNew.getChildren().get(0)).setText(filename.replaceAll("_", " "));
+					System.out.println(fxmlTitle);
+					System.out.println(newId);
+//					Scene scene = stackParamGB.getScene();
+//					VBox boxNew = new VBox();
+					System.out.println("/main/"+fxmlTitle+".fxml");
+					VBox boxLoaded = FXMLLoader.load(getClass().getResource("/main/"+fxmlTitle+".fxml"));
+					boxLoaded.setId(newId+"GB");
+//					boxNew.setPadding(new Insets(20));
+//					boxNew.setVisible(false);
+//					VBox box = (VBox) scene.lookup("#"+fxmlTitle+"GB");
+//					boxNew.getChildren().addAll(box.getChildren());
+//					boxNew.setId(newId+"GB");
+					((Text)boxLoaded.getChildren().get(0)).setText(filename.replaceAll("_", " "));
 					
-					if (boxNew.lookup("#cb"+fxmlTitle+"GB") != null) {
-						boxNew.lookup("#cb"+fxmlTitle+"GB").setId("cb"+newId);
+					if (boxLoaded.lookup("#cb"+fxmlTitle+"GB") != null) {
+						boxLoaded.lookup("#cb"+fxmlTitle+"GB").setId("cb"+newId);
 					}
-					if (boxNew.lookup("#tf"+fxmlTitle+"GB") != null) {
-						boxNew.lookup("#tf"+fxmlTitle+"GB").setId("tf"+newId);
+					if (boxLoaded.lookup("#tf"+fxmlTitle+"GB") != null) {
+						boxLoaded.lookup("#tf"+fxmlTitle+"GB").setId("tf"+newId);
 					}
-					stackParamGB.getChildren().add(boxNew);
+					stackParamGB.getChildren().add(boxLoaded);
 				}
 			}
 			

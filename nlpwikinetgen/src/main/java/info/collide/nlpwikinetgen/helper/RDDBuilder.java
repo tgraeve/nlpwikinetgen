@@ -2,21 +2,14 @@ package info.collide.nlpwikinetgen.helper;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.SparkConf;
 
 import info.collide.nlpwikinetgen.type.BasicNode;
-import info.collide.nlpwikinetgen.type.Edge;
-import info.collide.nlpwikinetgen.type.Node;
 import scala.Tuple2;
 
 public class RDDBuilder {

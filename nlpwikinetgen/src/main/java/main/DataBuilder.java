@@ -20,7 +20,6 @@ import de.tudarmstadt.ukp.wikipedia.api.exception.WikiInitializationException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import dkpro.similarity.algorithms.lexical.ngrams.WordNGramJaccardMeasure;
-import filter.RDDFilter;
 import info.collide.nlpwikinetgen.builder.GraphDataComponent;
 import info.collide.nlpwikinetgen.builder.RevisionNetwork;
 import info.collide.nlpwikinetgen.builder.SimilarityCalculator;

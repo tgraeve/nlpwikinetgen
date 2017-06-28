@@ -4,9 +4,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
-import info.collide.nlpwikinetgen.type.BasicNode;
 import info.collide.nlpwikinetgen.type.BoolNode;
 
 public class WikiMinorFlag implements GraphDataComponent {
@@ -30,6 +28,7 @@ public class WikiMinorFlag implements GraphDataComponent {
 		System.out.println(revisionId);
 	}
 
+	@Override
 	public Object close() {
 		return nodes;
 	}

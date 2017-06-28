@@ -5,20 +5,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.ToDoubleBiFunction;
-
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.catalyst.plans.logical.Distinct;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.apache.log4j.*;
 import org.graphframes.GraphFrame;
-import org.apache.spark.sql.functions.*;
-
 import info.collide.nlpwikinetgen.helper.GMLWriter;
 import info.collide.nlpwikinetgen.type.BasicNode;
 import info.collide.nlpwikinetgen.type.BoolNode;
@@ -76,16 +70,14 @@ public class GraphBuilder {
 		majorNodes.show();
 		
 		//edges of type "link" where neither source nor destination are deleted can be kept
-		Dataset<Row> allLinks = dfEdges.filter("type = 'link'").filter(r -> allNodeList.contains(r.getString(1))).cache();
+		Dataset<Row> allLinks = dfEdges.filter("type = 'link'").filter(r -> allNodeList.contains(r.getString(1)));
 		Dataset<Row> unaffectedLinks = allLinks.filter(e -> !minorList.contains(e.getString(0))).filter(e -> !minorList.contains(e.getString(1)));
-		List<Edge> unaffectedLinksList = (List<Edge>) unaffectedLinks.javaRDD().map(r -> new Edge(r.getString(1),r.getString(0),r.getString(2))).collect(); //mind order of columns is not order of native node class!
-
+		unaffectedLinks.show();
+		List<Edge> unaffectedLinksList = unaffectedLinks.javaRDD().map(r -> new Edge(r.getString(1),r.getString(0),r.getString(2))).collect(); //mind order of columns is not order of native node class!
+		System.out.println(allLinks.count() +" ###" + unaffectedLinksList.size());
 		Dataset<Row> affectedLinks = allLinks.except(unaffectedLinks);
-		System.out.println("alle links" +allLinks.count());
-		System.out.println(affectedLinks.count());
-		List<Edge> affectedLinkEdges = (List<Edge>) affectedLinks.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect();
+		List<Edge> affectedLinkEdges = affectedLinks.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect();
 		List<String> affectedLinkSrc = affectedLinks.select("src").javaRDD().map(r -> r.getString(0)).collect();
-		System.out.println("aff sources: "+affectedLinkSrc.size());
 		
 		/*
 		 * rebuilds revision edges for all remaining nodes

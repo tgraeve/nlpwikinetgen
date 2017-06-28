@@ -1,4 +1,4 @@
 h2655337.stratoserver.net
 enwiki_20170111
-jwpldbadmin
-APdJWPLDB
+jwpldbuser
+PdJWPLDBU!
