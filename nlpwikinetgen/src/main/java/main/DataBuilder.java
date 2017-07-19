@@ -134,34 +134,6 @@ public class DataBuilder extends Task{
 		updateMessage("Done.");
 		return null;
 	}
-
-	public static void main(String[] args) throws WikiApiException, IOException {
-//		dbConfig = getDatabaseConfig();
-//		wiki = getWiki(dbConfig);
-//		revApi = getRevisionAPI(dbConfig);
-		
-//		Category cat = wiki.getCategory("German_beer_culture");
-//		Iterable<Page> pages = cat.getArticles();
-//		int pageAmount = cat.getNumberOfPages();
-//		
-//		RevisionNetwork revNet = new RevisionNetwork(revApi);
-//		revNet.buildNetwork(wiki, pages, pageAmount);
-//		
-//		DumpIndexer indexer = new DumpIndexer(revApi);
-//		indexer.indexWiki(pages, pageAmount);
-//		
-//		SimilarityCalculator simCalc = new SimilarityCalculator(revApi);
-//		List<DoubleNode> simNodes = simCalc.calcSimilarity(pages, pageAmount, new WordNGramJaccardMeasure(3));
-//		serializeData(simNodes, "simNodesJac");
-		
-//		RDDBuilder rddBuild = new RDDBuilder();
-//		rddBuild.nodesToRDD("nodes.tmp");
-//		rddBuild.nodesToRDD("simNodesJac.tmp");
-//		
-//		RDDFilter rddMerger = new RDDFilter();
-//		rddMerger.filterRDD();
-	}
-	
 	
 	public void serializeData(Object o, String content) {
 		FileOutputStream fos;
