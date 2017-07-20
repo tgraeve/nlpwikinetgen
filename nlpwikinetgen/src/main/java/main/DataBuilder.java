@@ -1,14 +1,30 @@
 package main;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 
 import de.tudarmstadt.ukp.wikipedia.api.Category;
 import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
@@ -21,11 +37,14 @@ import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import dkpro.similarity.algorithms.lexical.ngrams.WordNGramJaccardMeasure;
 import info.collide.nlpwikinetgen.builder.GraphDataComponent;
-import info.collide.nlpwikinetgen.builder.RevisionNetwork;
+import info.collide.nlpwikinetgen.builder.NetworkBuilder;
+import info.collide.nlpwikinetgen.builder.PageThread;
 import info.collide.nlpwikinetgen.builder.SimilarityCalculator;
 import info.collide.nlpwikinetgen.helper.RDDBuilder;
 import info.collide.nlpwikinetgen.lucene.DumpIndexer;
+import info.collide.nlpwikinetgen.lucene.WikiAnalyzer;
 import info.collide.nlpwikinetgen.type.DoubleNode;
+import info.collide.nlpwikinetgen.type.Edge;
 import info.collide.nlpwikinetgen.type.Node;
 import javafx.concurrent.Task;
 
@@ -53,10 +72,12 @@ public class DataBuilder extends Task{
 	private RevisionApi revApi;
 	Iterable<Page> pages;
 	
-	RevisionNetwork revNet = null;
+	NetworkBuilder revNet = null;
 	DumpIndexer indexer = null;
+	IndexWriter indexWriter = null;
 	long pageAmount;
 	long counter = 0;
+	long started = 0;
 	
 	public DataBuilder(String pathToConf, String pathToFolder, boolean wholeWiki, String category, boolean buildGraph, boolean buildIndex) throws WikiApiException, IOException {
 		this.pathToConf = pathToConf;
@@ -80,62 +101,124 @@ public class DataBuilder extends Task{
 			pageAmount = cat.getNumberOfPages();
 		}
 		
-		if (buildGraph) {
-			revNet = new RevisionNetwork(wiki, revApi, pathToFolder);
-		}
-		
 		if (buildIndex) {
-			indexer = new DumpIndexer(revApi, pathToFolder);
+			//set lucene config
+	        Analyzer analyzer = new WikiAnalyzer();
+	        IndexWriterConfig config = new IndexWriterConfig(analyzer);
+	        config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+	        
+	        try {
+				Directory directory = FSDirectory.open(new File(pathToFolder+"/lucene/").toPath());
+				indexWriter = new IndexWriter(directory , config);
+			} catch (IOException e) {
+				System.out.println("Indexer failed while initializing the index writer.");
+				e.printStackTrace();
+			}
 		}
 	}
 	
 	@Override
 	protected Object call() throws Exception {
 		updateMessage("Start generating...");
+		
+		ExecutorService ex = Executors.newCachedThreadPool();
+		Collection<Future<?>> futures = new LinkedList<Future<?>>();
+		
 		for (Page page : pages) {
-			int pageId = page.getPageId();
-			String sPageId = Integer.toString(pageId);
-			String title = page.getTitle().toString();
-			
-			if (revNet != null) {revNet.nextPage(sPageId, title);}
-			if (indexer != null) {indexer.nextPage(sPageId, title);}
-			
-			for(GraphDataComponent component : filter) {
-				component.nextPage(sPageId, title);
+			if (buildGraph) {
+				revNet = new NetworkBuilder(wiki, revApi, pathToFolder);
+			}
+			if (buildIndex) {
+				indexer = new DumpIndexer(indexWriter, revApi, pathToFolder);
 			}
 			
-			Collection<Timestamp> revisionTimeStamps = revApi.getRevisionTimestamps(pageId);
-			if (!revisionTimeStamps.isEmpty()) {
-				for (Timestamp t : revisionTimeStamps) {
-					Revision rev = revApi.getRevision(pageId, t);
-	        		String revisionId = Integer.toString(rev.getRevisionID());
-	        		String text = rev.getRevisionText();
-	        		
-	        		if (revNet != null) {revNet.nextRevision(revisionId, text, t);}
-	        		if (indexer != null) {indexer.nextRevision(revisionId, text, t);}
-	        		
-	        		for(GraphDataComponent component : filter) {
-	    				component.nextRevision(revisionId, text, t);
-	    			}
-				}
-			}
-			counter++;
-			updateMessage("Page "+title+" done. ("+counter+"/"+pageAmount+")");
-			updateProgress(counter, pageAmount);
+			ex.execute(new PageThread(page, revApi, revNet, indexer, filter));
+			
+//			started++;
+			updateMessage("Started/Done/All ("+((ThreadPoolExecutor)ex).getTaskCount()+"/"+((ThreadPoolExecutor)ex).getCompletedTaskCount()+"/"+pageAmount+")");
+//			updateProgress(counter, pageAmount);
+		}
+
+		ex.shutdown();
+		
+		while(!ex.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)) {
+			updateMessage("Started/Done/All ("+((ThreadPoolExecutor)ex).getTaskCount()+"/"+((ThreadPoolExecutor)ex).getCompletedTaskCount()+"/"+pageAmount+")");
+			updateProgress(((ThreadPoolExecutor)ex).getCompletedTaskCount(), pageAmount);
+			Thread.sleep(10000);
 		}
 		
-		if (revNet != null) {revNet.close();}
-		if (indexer != null) {indexer.close();}
-		
-		for(GraphDataComponent component : filter) {
-			serializeData(component.close(), component.getDescr());
+		if (buildGraph) {
+			System.out.println("Started to concat single graph files.");
+			List<Node> finalNodes = new ArrayList<Node>();
+			List<Edge> finalEdges = new ArrayList<Edge>();
+			File dir = new File(pathToFolder);
+			for(File file : dir.listFiles((d,name) -> name.toLowerCase().startsWith("nodes"))) {
+				finalNodes.addAll(deserializeNodes(file.getAbsolutePath()));
+				file.deleteOnExit();
+			}
+			for(File file : dir.listFiles((d,name) -> name.toLowerCase().startsWith("edges"))) {
+				finalEdges.addAll(deserializeEdges(file.getAbsolutePath()));
+				file.deleteOnExit();
+			}
+			serializeGraph(finalNodes, finalEdges);
+		}
+		if (buildIndex) {
+			indexWriter.close();
+			System.out.println("IndexWriter closed.");
 		}
 		
 		updateMessage("Done.");
 		return null;
 	}
 	
-	public void serializeData(Object o, String content) {
+	private ArrayList<Node> deserializeNodes(String pathToFolder) {
+		FileInputStream fis;
+		ArrayList<Node> nodes = null;
+		try {
+			fis = new FileInputStream(pathToFolder);
+			ObjectInputStream ois = new ObjectInputStream(fis);
+	        nodes = (ArrayList<Node>) ois.readObject();
+	        ois.close();
+		} catch (Exception e) {
+			System.out.println("Failed deserializing. Please retry.");
+			e.printStackTrace();
+		}
+		return nodes;
+	}
+	
+	private ArrayList<Edge> deserializeEdges(String pathToFolder) {
+		FileInputStream fis;
+		ArrayList<Edge> edges = null;
+		try {
+			fis = new FileInputStream(pathToFolder);
+			ObjectInputStream ois = new ObjectInputStream(fis);
+	        edges = (ArrayList<Edge>) ois.readObject();
+	        ois.close();
+		} catch (Exception e) {
+			System.out.println("Failed deserializing. Please retry.");
+			e.printStackTrace();
+		}
+		return edges;
+	}
+	
+	public void serializeGraph(List<Node> nodes, List<Edge> edges) {
+		//Serialize nodes and edges
+        FileOutputStream fos;
+		try {
+			fos = new FileOutputStream(pathToFolder+"/nodes.tmp");
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+	        oos.writeObject(nodes);
+	        fos = new FileOutputStream(pathToFolder+"/edges.tmp");
+	        oos = new ObjectOutputStream(fos);
+	        oos.writeObject(edges);
+	        oos.close();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void serializeFilter(Object o, String content) {
 		FileOutputStream fos;
 		try {
 			fos = new FileOutputStream(pathToFolder+"/" + content + ".filter");

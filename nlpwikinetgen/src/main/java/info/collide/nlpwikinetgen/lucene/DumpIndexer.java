@@ -64,26 +64,48 @@ public class DumpIndexer implements GraphDataComponent {
     	doc.add(article);
 	}
 	
+	public DumpIndexer(IndexWriter indexWriter, RevisionApi revApi, String outputFolder) throws WikiApiException {
+		this.indexWriter = indexWriter;
+		this.revApi = revApi;
+		this.outputFolder = outputFolder;
+		
+		//set lucene config
+        Analyzer analyzer = new WikiAnalyzer();
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+		
+		//instantiate one time due to performance
+		doc = new Document();
+		revId = new StringField("revisionId", "", Store.YES);
+    	doc.add(revId);
+    	article = new TextField("text", "", Store.NO);
+    	doc.add(article);
+	}
+	
 	@Override
-	public void nextPage(String pageId, String title) throws IOException {
-		indexWriter.commit();
+	public void nextPage(String pageId, String title) {
+//		try {
+//			indexWriter.commit();
+//		} catch (IOException e) {
+//			System.out.println("Error committing index to indexWriter.");
+//			e.printStackTrace();
+//		}
 		this.pageId = pageId;
 	}
 	
 	@Override
-	public void nextRevision(String revisionId, String text, Timestamp t) throws IOException {
+	public void nextRevision(String revisionId, String text, Timestamp t) {
 		index(indexWriter, revisionId, text);
 	}
 	
 	@Override
 	public Object close() {
 		try {
-			indexWriter.close();
-			directory.close();
+			indexWriter.commit();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}		
+		}
 		return null;
 	}
 	
@@ -100,10 +122,12 @@ public class DumpIndexer implements GraphDataComponent {
 		return descr;
 	}
 	
-	private void index(IndexWriter writer, String revisionId, String text) throws IOException {
+	private void index(IndexWriter writer, String revisionId, String text) {
     	
 		revId.setStringValue(revisionId);
 	    article.setStringValue(text);
+	    
+	    System.out.println(revisionId);
     	
     	//try/catch just backup for filter in analyzer. terms may not be too long.
     	try {
@@ -111,6 +135,10 @@ public class DumpIndexer implements GraphDataComponent {
 //    		writer.addDocument(doc);
 		} catch (IllegalArgumentException e) {
 			System.out.println("Maybe term is too long.");
+		} catch (IOException e) {
+			System.out.println("Error updating index.");
+			e.printStackTrace();
 		}
     }
+
 }
