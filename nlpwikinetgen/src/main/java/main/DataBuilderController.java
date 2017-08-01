@@ -152,12 +152,12 @@ public class DataBuilderController implements Initializable {
 	public void initialize(URL location, ResourceBundle resources) {
 		TreeItem<String> root = new TreeItem<> ("Root");
 		
-		TreeItem<String> simpleFilter = new TreeItem<> ("Simple Filters");
+		TreeItem<String> simpleFilter = new TreeItem<> ("Simple Classifier");
 			TreeItem<String> wikiMinorFlag = new TreeItem<> ("Wiki Minor Flag");
 			TreeItem<String> charLengthDiff = new TreeItem<> ("Character Length Difference");
 
 			
-		TreeItem<String> similarityFilter = new TreeItem<> ("Similarity Filters");
+		TreeItem<String> similarityFilter = new TreeItem<> ("Similarity Classifier");
 			TreeItem<String> nGram = new TreeItem<> ("n-gram");
 				TreeItem<String> wordNGramJaccard = new TreeItem<> ("Word N-Gram Jaccard");
 				TreeItem<String> wordNGramContainment = new TreeItem<> ("Word N-Gram Containment");

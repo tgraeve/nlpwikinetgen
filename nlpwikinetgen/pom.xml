@@ -102,51 +102,6 @@
     	<version>1.1.0</version>
     </dependency>
     <dependency>
-    	<groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
-    	<artifactId>
-    		de.tudarmstadt.ukp.dkpro.core.io.text-asl
-    	</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
-    	<artifactId>de.tudarmstadt.ukp.dkpro.core.tokit-asl</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
-    	<artifactId>
-    		de.tudarmstadt.ukp.dkpro.core.stanfordnlp-gpl
-    	</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
-    	<artifactId>
-    		de.tudarmstadt.ukp.dkpro.core.io.conll-asl
-    	</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
-    	<artifactId>
-    		de.tudarmstadt.ukp.dkpro.core.stopwordremover-asl
-    	</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
-    	<artifactId>
-    		de.tudarmstadt.ukp.dkpro.core.treetagger-asl
-    	</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>de.tudarmstadt.ukp.dkpro.core</groupId>
-    	<artifactId>
-    		de.tudarmstadt.ukp.dkpro.core.api.lexmorph-asl
-    	</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>edu.stanford.nlp</groupId>
-    	<artifactId>stanford-corenlp</artifactId>
-    	<version>3.6.0</version>
-    </dependency>
-    <dependency>
     	<groupId>eu.sisob</groupId>
     	<artifactId>api-data</artifactId>
     	<version>1.0.1-SNAPSHOT</version>

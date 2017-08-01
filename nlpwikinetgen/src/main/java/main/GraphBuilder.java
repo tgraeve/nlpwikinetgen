@@ -50,7 +50,7 @@ public class GraphBuilder {
 		dfEdges = spark.createDataFrame(edges, Edge.class);
 		dfNodes.cache();
 		dfEdges.cache();
-		gf = new GraphFrame(dfNodes, dfEdges);
+//		gf = new GraphFrame(dfNodes, dfEdges);
 	}
 	
 	public void generateGraph(List<StringPair> filters, ArrayList<String> keyRev) throws IOException {
@@ -77,7 +77,7 @@ public class GraphBuilder {
 		System.out.println(allLinks.count() +" ###" + unaffectedLinksList.size());
 		Dataset<Row> affectedLinks = allLinks.except(unaffectedLinks);
 		List<Edge> affectedLinkEdges = affectedLinks.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect();
-		List<String> affectedLinkSrc = affectedLinks.select("src").javaRDD().map(r -> r.getString(0)).collect();
+//		List<String> affectedLinkSrc = affectedLinks.select("src").javaRDD().map(r -> r.getString(1)).collect();
 		
 		/*
 		 * rebuilds revision edges for all remaining nodes
@@ -109,8 +109,9 @@ public class GraphBuilder {
 		List<Edge> corrLinkEdges = new ArrayList<>();
 		for(Edge e : affectedLinkEdges) {
 			String src = e.getSrc();
+			
 			String srcPage = dfNodes.filter("id="+src).first().getString(1);
-			String newSource = majorNodes.filter("pageId="+srcPage).filter("id<"+src).sort(org.apache.spark.sql.functions.desc("id")).first().getString(0);
+			String newSource = majorNodes.filter("pageId="+srcPage).first().getString(0);
 			Edge corrEdge = new Edge(newSource,e.getDst(),e.getType());
 			corrLinkEdges.add(corrEdge);
 		}
@@ -127,9 +128,9 @@ public class GraphBuilder {
 	
 	private Dataset<Row> verifyMinorNodes(Dataset<Row> minorNodes) {
 		Dataset<Row> linkDst = dfEdges.filter("type='link'").select("dst");
-		Dataset<Row> verifiedNodes = minorNodes.except(linkDst);
+		Dataset<Row> verifiedNodes = minorNodes.except(linkDst);				//filter nodes with inlinks
 		Dataset<Row> revDst = dfEdges.filter("type='revision'").select("dst");
-		verifiedNodes = verifiedNodes.except(dfNodes.select("id").except(revDst));
+		verifiedNodes = verifiedNodes.except(dfNodes.select("id").except(revDst)); //filter nodes which have no revision inlink (first nodes)
 		return verifiedNodes;
 	}
 	

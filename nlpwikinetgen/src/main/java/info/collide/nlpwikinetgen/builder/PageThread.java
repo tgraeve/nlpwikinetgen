@@ -47,12 +47,14 @@ public class PageThread implements Runnable {
 		if (netBuilder != null) {netBuilder.nextPage(sPageId, title);}
 		if (indexer != null) {indexer.nextPage(sPageId, title);}
 		
-		for(GraphDataComponent component : filter) {
-			try {
-				component.nextPage(sPageId, title);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if (filter != null) {
+			for(GraphDataComponent component : filter) {
+				try {
+					component.nextPage(sPageId, title);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		
@@ -78,14 +80,16 @@ public class PageThread implements Runnable {
         		if (netBuilder != null) {netBuilder.nextRevision(revisionId, text, t);}
         		if (indexer != null) {indexer.nextRevision(revisionId, text, t);}
         		
-        		for(GraphDataComponent component : filter) {
-    				try {
-						component.nextRevision(revisionId, text, t);
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-    			}
+        		if (filter != null) {
+        			for(GraphDataComponent component : filter) {
+        				try {
+    						component.nextRevision(revisionId, text, t);
+    					} catch (Exception e) {
+    						// TODO Auto-generated catch block
+    						e.printStackTrace();
+    					}
+        			}
+        		}
 			}
 		}
 		if (netBuilder != null) {netBuilder.close();}
@@ -94,9 +98,10 @@ public class PageThread implements Runnable {
 			indexer.close();
 			lock.unlock();
 		}
-		
-		for(GraphDataComponent component : filter) {
-			serializeData(component.close(), component.getDescr());
+		if (filter != null) {
+			for(GraphDataComponent component : filter) {
+				serializeData(component.close(), component.getDescr());
+			}
 		}
 	}
 	

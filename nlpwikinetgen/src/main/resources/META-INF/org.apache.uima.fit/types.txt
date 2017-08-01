@@ -1,1 +1,0 @@
-classpath*:/nlpwikinetgen/src/main/resources/desc/type/NetworkExtraction.xml

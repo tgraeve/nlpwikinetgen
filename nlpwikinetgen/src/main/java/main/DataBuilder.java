@@ -7,15 +7,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -33,17 +31,12 @@ import de.tudarmstadt.ukp.wikipedia.api.WikiConstants.Language;
 import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiInitializationException;
-import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
-import dkpro.similarity.algorithms.lexical.ngrams.WordNGramJaccardMeasure;
 import info.collide.nlpwikinetgen.builder.GraphDataComponent;
 import info.collide.nlpwikinetgen.builder.NetworkBuilder;
 import info.collide.nlpwikinetgen.builder.PageThread;
-import info.collide.nlpwikinetgen.builder.SimilarityCalculator;
-import info.collide.nlpwikinetgen.helper.RDDBuilder;
 import info.collide.nlpwikinetgen.lucene.DumpIndexer;
 import info.collide.nlpwikinetgen.lucene.WikiAnalyzer;
-import info.collide.nlpwikinetgen.type.DoubleNode;
 import info.collide.nlpwikinetgen.type.Edge;
 import info.collide.nlpwikinetgen.type.Node;
 import javafx.concurrent.Task;
@@ -70,7 +63,7 @@ public class DataBuilder extends Task{
 	private DatabaseConfiguration dbConfig;
 	private Wikipedia wiki;
 	private RevisionApi revApi;
-	Iterable<Page> pages;
+	private Iterable<Page> pages;
 	
 	NetworkBuilder revNet = null;
 	DumpIndexer indexer = null;
@@ -93,12 +86,12 @@ public class DataBuilder extends Task{
 				
 		if (wholeWiki) {
 			pages = wiki.getArticles();
-			pageAmount = wiki.getMetaData().getNumberOfPages();
+			pageAmount = wiki.getMetaData().getNumberOfPages()-wiki.getMetaData().getNumberOfDisambiguationPages()-wiki.getMetaData().getNumberOfRedirectPages();
 			
 		} else {
 			Category cat = wiki.getCategory(category);
-			pages = cat.getArticles();
-			pageAmount = cat.getNumberOfPages();
+			pages = getAllPages(cat);
+//			pageAmount = cat.get
 		}
 		
 		if (buildIndex) {
@@ -117,12 +110,21 @@ public class DataBuilder extends Task{
 		}
 	}
 	
+	private TreeSet<Page> getAllPages(Category cat) throws WikiApiException {
+		TreeSet<Page> p = new TreeSet<Page>();
+		p.addAll(cat.getArticles());
+		for(Category c : cat.getDescendants()) {
+			System.out.println(c.getTitle());
+			p.addAll(getAllPages(c));
+		}
+		return p;
+	}
+	
 	@Override
 	protected Object call() throws Exception {
 		updateMessage("Start generating...");
 		
-		ExecutorService ex = Executors.newCachedThreadPool();
-		Collection<Future<?>> futures = new LinkedList<Future<?>>();
+		ExecutorService ex = Executors.newFixedThreadPool(64);
 		
 		for (Page page : pages) {
 			if (buildGraph) {
@@ -134,18 +136,14 @@ public class DataBuilder extends Task{
 			
 			ex.execute(new PageThread(page, revApi, revNet, indexer, filter));
 			
-//			started++;
-			updateMessage("Started/Done/All ("+((ThreadPoolExecutor)ex).getTaskCount()+"/"+((ThreadPoolExecutor)ex).getCompletedTaskCount()+"/"+pageAmount+")");
-//			updateProgress(counter, pageAmount);
+			started++;
+			updateMessage("Started/All ("+started+"/"+pageAmount+")");
+//			updateProgress(started, pageAmount);
 		}
 
 		ex.shutdown();
 		
-		while(!ex.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)) {
-			updateMessage("Started/Done/All ("+((ThreadPoolExecutor)ex).getTaskCount()+"/"+((ThreadPoolExecutor)ex).getCompletedTaskCount()+"/"+pageAmount+")");
-			updateProgress(((ThreadPoolExecutor)ex).getCompletedTaskCount(), pageAmount);
-			Thread.sleep(10000);
-		}
+		ex.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 		
 		if (buildGraph) {
 			System.out.println("Started to concat single graph files.");
