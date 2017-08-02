@@ -1,5 +1,7 @@
 package info.collide.nlpwikinetgen.builder;
 
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +45,18 @@ public class CharacterLengthDifference implements GraphDataComponent {
 
 	@Override
 	public Object close() {
-		return nodes;
+		//Serialize nodes and edges
+        FileOutputStream fos;
+		try {
+			fos = new FileOutputStream(path+"/"+descr+"_"+title+".filter");
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+	        oos.writeObject(nodes);
+	        oos.close();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	@Override
