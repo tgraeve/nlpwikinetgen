@@ -38,7 +38,7 @@ public class PageThread implements Runnable {
 		String sPageId = Integer.toString(pageId);
 		String title = "";
 		try {
-			title = page.getTitle().toString();
+			title = page.getTitle().toString().replace("/", "0");
 		} catch (WikiTitleParsingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
