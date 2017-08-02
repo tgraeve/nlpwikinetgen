@@ -1,5 +1,7 @@
 package info.collide.nlpwikinetgen.builder;
 
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +22,14 @@ public class SimilarityCalculator implements GraphDataComponent {
 	Wikipedia wiki;
 	RevisionApi revApi;
 	IndexWriter indexWriter;
+	String path;
 	Document doc;
 	Field revId;
 	Field article;
 	private List<DoubleNode> nodes;
 	private String prevText;
 	private String pageId;
+	private String title;
 	private TextSimilarityMeasure tsm;
 	String descr;
 	
@@ -35,10 +39,18 @@ public class SimilarityCalculator implements GraphDataComponent {
 		nodes = new ArrayList<DoubleNode>();
 	}
 	
+	public SimilarityCalculator(RevisionApi revApi, TextSimilarityMeasure tsm, String descr, String path) {
+		this.revApi = revApi;
+		this.tsm = tsm;
+		this.descr = descr;
+		this.path = path;
+		nodes = new ArrayList<DoubleNode>();
+	}
+	
 
 	@Override
 	public void nextPage(String pageId, String title) throws Exception {
-		this.pageId = pageId;
+		this.title = title;
 		prevText = "";
 	}
 
@@ -60,7 +72,18 @@ public class SimilarityCalculator implements GraphDataComponent {
 
 	@Override
 	public List<DoubleNode> close() {
-		return nodes;
+		//Serialize nodes and edges
+        FileOutputStream fos;
+		try {
+			fos = new FileOutputStream(path+"/"+descr+"_"+title+".filter");
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+	        oos.writeObject(nodes);
+	        oos.close();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@Override
@@ -72,5 +95,22 @@ public class SimilarityCalculator implements GraphDataComponent {
 	@Override
 	public String getDescr() {
 		return descr;
+	}
+	
+	public Object clone() {
+		SimilarityCalculator sc = new SimilarityCalculator(revApi, tsm, descr, path);
+		return sc;
+	}
+
+
+	@Override
+	public void setOutputPath(String path) {
+		this.path = path;
+	}
+
+
+	@Override
+	public String getOutputPath() {
+		return path;
 	}
 }

@@ -11,6 +11,8 @@ public class CharacterLengthDifference implements GraphDataComponent {
 	
 	RevisionApi revApi;
 	List<IntNode> nodes;
+	String path;
+	String title;
 	int prevLength;
 	String descr = "Character_Length_Difference";
 	
@@ -18,9 +20,17 @@ public class CharacterLengthDifference implements GraphDataComponent {
 		this.revApi = revApi;
 		this.nodes = new ArrayList<IntNode>();
 	}
+	
+	public CharacterLengthDifference(RevisionApi revApi, String descr, String path) {
+		this.revApi = revApi;
+		this.descr = descr;
+		this.path = path;
+		this.nodes = new ArrayList<IntNode>();
+	}
 
 	@Override
 	public void nextPage(String pageId, String title) throws Exception {
+		this.title = title;
 		this.prevLength = 0;
 	}
 
@@ -47,4 +57,18 @@ public class CharacterLengthDifference implements GraphDataComponent {
 		return descr;
 	}
 
+	public Object clone() {
+		CharacterLengthDifference cld = new CharacterLengthDifference(revApi, descr, path);
+		return cld;
+	}
+
+	@Override
+	public void setOutputPath(String path) {
+		this.path = path;
+	}
+
+	@Override
+	public String getOutputPath() {
+		return path;
+	}
 }

@@ -39,7 +39,7 @@ public class DumpIndexer implements GraphDataComponent {
 	private String revisionId;
 	String descr;
 	
-	public DumpIndexer(RevisionApi revApi, String outputFolder) throws WikiApiException {
+	public DumpIndexer(RevisionApi revApi, String outputFolder) {
 		this.revApi = revApi;
 		this.outputFolder = outputFolder;
 		
@@ -140,5 +140,18 @@ public class DumpIndexer implements GraphDataComponent {
 			e.printStackTrace();
 		}
     }
+	public Object clone(){
+		DumpIndexer di = new DumpIndexer(revApi, outputFolder);
+		return di;
+	}
 
+	@Override
+	public void setOutputPath(String path) {
+		this.outputFolder = path;
+	}
+
+	@Override
+	public String getOutputPath() {
+		return outputFolder;
+	}
 }

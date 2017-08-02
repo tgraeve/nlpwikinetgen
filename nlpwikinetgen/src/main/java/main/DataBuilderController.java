@@ -116,6 +116,7 @@ public class DataBuilderController implements Initializable {
 		boolean buildIndex = cbBuildIndex.isSelected();
 
 		try {
+			tStatus.setText("Started collecting pages of choosen category...");
 			db = new DataBuilder(tfConfigFile.getText(), tfOutputFolderDB.getText(), wholeWiki, category, buildGraph, buildIndex);
 			RevisionApi revApi = db.getRevisionAPI();
 			

@@ -180,4 +180,19 @@ public class NetworkBuilder implements GraphDataComponent {
 	public String getPath() {
 		return path;
 	}
+	
+	public Object clone() {
+		NetworkBuilder nb = new NetworkBuilder(revApi);
+		return nb;
+	}
+
+	@Override
+	public void setOutputPath(String path) {
+		this.path = path;
+	}
+
+	@Override
+	public String getOutputPath() {
+		return path;
+	}
 }

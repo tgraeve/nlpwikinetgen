@@ -100,21 +100,21 @@ public class PageThread implements Runnable {
 		}
 		if (filter != null) {
 			for(GraphDataComponent component : filter) {
-				serializeData(component.close(), component.getDescr());
+				component.close();
 			}
 		}
 	}
 	
-	public void serializeData(Object o, String content) {
-		FileOutputStream fos;
-		try {
-			fos = new FileOutputStream(netBuilder.getPath()+"/" + content + ".filter");
-			ObjectOutputStream oos = new ObjectOutputStream(fos);
-	        oos.writeObject(o);
-	        oos.close();
-		} catch (Exception e) {
-			System.out.println("Failed serializing nodes. Please retry.");
-			e.printStackTrace();
-		} 
-	}
+//	public void serializeData(Object o, String content) {
+//		FileOutputStream fos;
+//		try {
+//			fos = new FileOutputStream(netBuilder.getPath()+"/" + content + ".filter");
+//			ObjectOutputStream oos = new ObjectOutputStream(fos);
+//	        oos.writeObject(o);
+//	        oos.close();
+//		} catch (Exception e) {
+//			System.out.println("Failed serializing nodes. Please retry.");
+//			e.printStackTrace();
+//		} 
+//	}
 }

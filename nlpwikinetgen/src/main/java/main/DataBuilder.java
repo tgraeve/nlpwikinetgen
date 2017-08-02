@@ -37,8 +37,10 @@ import info.collide.nlpwikinetgen.builder.NetworkBuilder;
 import info.collide.nlpwikinetgen.builder.PageThread;
 import info.collide.nlpwikinetgen.lucene.DumpIndexer;
 import info.collide.nlpwikinetgen.lucene.WikiAnalyzer;
+import info.collide.nlpwikinetgen.type.BasicNode;
 import info.collide.nlpwikinetgen.type.Edge;
 import info.collide.nlpwikinetgen.type.Node;
+import info.collide.nlpwikinetgen.type.StringPair;
 import javafx.concurrent.Task;
 
 /**
@@ -53,10 +55,12 @@ public class DataBuilder extends Task{
 	private String pathToConf;
 	private String pathToFolder;
 	private boolean wholeWiki;
-	private String Category;
+	private String category;
 	private boolean buildGraph;
 	private boolean buildIndex;
 	private List<GraphDataComponent> filter;
+	private List<GraphDataComponent> filters;
+
 
 	private List<String> folderMeta;
 	
@@ -64,6 +68,7 @@ public class DataBuilder extends Task{
 	private Wikipedia wiki;
 	private RevisionApi revApi;
 	private Iterable<Page> pages;
+	private Iterable<StringPair> sPages;
 	
 	NetworkBuilder revNet = null;
 	DumpIndexer indexer = null;
@@ -76,7 +81,7 @@ public class DataBuilder extends Task{
 		this.pathToConf = pathToConf;
 		this.pathToFolder = pathToFolder;
 		this.wholeWiki = wholeWiki;
-		this.Category = category;
+		this.category = category;
 		this.buildGraph = buildGraph;
 		this.buildIndex = buildIndex;
 		
@@ -84,15 +89,15 @@ public class DataBuilder extends Task{
 		wiki = getWiki(dbConfig);
 		revApi = getRevisionAPI();
 				
-		if (wholeWiki) {
-			pages = wiki.getArticles();
-			pageAmount = wiki.getMetaData().getNumberOfPages()-wiki.getMetaData().getNumberOfDisambiguationPages()-wiki.getMetaData().getNumberOfRedirectPages();
-			
-		} else {
-			Category cat = wiki.getCategory(category);
-			pages = getAllPages(cat);
-//			pageAmount = cat.get
-		}
+//		if (wholeWiki) {
+//			pages = wiki.getArticles();
+//			pageAmount = wiki.getMetaData().getNumberOfPages()-wiki.getMetaData().getNumberOfDisambiguationPages()-wiki.getMetaData().getNumberOfRedirectPages();
+//			
+//		} else {
+//			Category cat = wiki.getCategory(category);
+//			pages = getAllPages(cat);
+////			pageAmount = cat.get
+//		}
 		
 		if (buildIndex) {
 			//set lucene config
@@ -110,12 +115,14 @@ public class DataBuilder extends Task{
 		}
 	}
 	
-	private TreeSet<Page> getAllPages(Category cat) throws WikiApiException {
-		TreeSet<Page> p = new TreeSet<Page>();
+	@Deprecated
+	private HashSet<Page> getAllPages(Category cat) throws WikiApiException {
+		HashSet<Page> p = new HashSet<Page>();
 		p.addAll(cat.getArticles());
 		for(Category c : cat.getDescendants()) {
 			System.out.println(c.getTitle());
-			p.addAll(getAllPages(c));
+			c.getArticles().forEach(page -> p.add(page));
+			p.addAll(c.getArticles());
 		}
 		return p;
 	}
@@ -126,20 +133,34 @@ public class DataBuilder extends Task{
 		
 		ExecutorService ex = Executors.newFixedThreadPool(64);
 		
-		for (Page page : pages) {
-			if (buildGraph) {
-				revNet = new NetworkBuilder(wiki, revApi, pathToFolder);
+		if (wholeWiki) {
+			pages = wiki.getArticles();
+			pageAmount = wiki.getMetaData().getNumberOfPages()-wiki.getMetaData().getNumberOfDisambiguationPages()-wiki.getMetaData().getNumberOfRedirectPages();
+			for(Page page : pages) {
+				executePage(page, ex);
 			}
-			if (buildIndex) {
-				indexer = new DumpIndexer(indexWriter, revApi, pathToFolder);
+		} else {
+			Category cat = wiki.getCategory(category);
+			cat.getArticles().forEach(page -> executePage(page, ex));
+			for(Category c : cat.getDescendants()) {
+				c.getArticles().forEach(page -> executePage(page, ex));
 			}
-			
-			ex.execute(new PageThread(page, revApi, revNet, indexer, filter));
-			
-			started++;
-			updateMessage("Started/All ("+started+"/"+pageAmount+")");
-//			updateProgress(started, pageAmount);
 		}
+		
+//		for (Page page : pages) {
+//			if (buildGraph) {
+//				revNet = new NetworkBuilder(wiki, revApi, pathToFolder);
+//			}
+//			if (buildIndex) {
+//				indexer = new DumpIndexer(indexWriter, revApi, pathToFolder);
+//			}
+//			
+//			ex.execute(new PageThread(page, revApi, revNet, indexer, filter));
+//			
+//			started++;
+//			updateMessage("Started/All ("+started+"/"+pageAmount+")");
+////			updateProgress(started, pageAmount);
+//		}
 
 		ex.shutdown();
 		
@@ -164,9 +185,51 @@ public class DataBuilder extends Task{
 			indexWriter.close();
 			System.out.println("IndexWriter closed.");
 		}
+		if (filter != null) {
+			for(GraphDataComponent f : filter) {
+				String des = f.getDescr();
+				System.out.println("Started to concat single filter files of "+des);
+				List<BasicNode> finalNodes = new ArrayList<BasicNode>();
+				File dir = new File(pathToFolder);
+				System.out.println(des.toLowerCase());
+				for(File file : dir.listFiles((d,name) -> name.startsWith(des))) {
+					finalNodes.addAll(deserializeFilter(file.getAbsolutePath()));
+					file.deleteOnExit();
+				}
+				serializeFilter(finalNodes, des);
+			}
+		}
 		
 		updateMessage("Done.");
 		return null;
+	}
+		
+	private void executePage(Page page, ExecutorService ex) {
+		filters = new ArrayList<GraphDataComponent>();
+		if (buildGraph) {
+			revNet = new NetworkBuilder(wiki, revApi, pathToFolder);
+		}
+		if (buildIndex) {
+			try {
+				indexer = new DumpIndexer(indexWriter, revApi, pathToFolder);
+			} catch (WikiApiException e) {
+				System.out.println("Failed indexing page "+page.getPageId()+".");
+				e.printStackTrace();
+			}
+		}
+		if(filter != null) {
+			for(GraphDataComponent f : filter) {
+				GraphDataComponent cloned = (GraphDataComponent) f.clone();
+				cloned.setOutputPath(pathToFolder);
+				filters.add(cloned);
+			}
+		}
+		
+		ex.execute(new PageThread(page, revApi, revNet, indexer, filters));
+		
+		started++;
+		updateMessage("Started/All ("+started+"/"+pageAmount+")");
+//		updateProgress(started, pageAmount);
 	}
 	
 	private ArrayList<Node> deserializeNodes(String pathToFolder) {
@@ -227,6 +290,21 @@ public class DataBuilder extends Task{
 			System.out.println("Failed serializing nodes. Please retry.");
 			e.printStackTrace();
 		} 
+	}
+	
+	private ArrayList<BasicNode> deserializeFilter(String pathToFile) {
+		FileInputStream fis;
+		ArrayList<BasicNode> nodes = null;
+		try {
+			fis = new FileInputStream(pathToFile);
+			ObjectInputStream ois = new ObjectInputStream(fis);
+	        nodes = (ArrayList<BasicNode>) ois.readObject();
+	        ois.close();
+		} catch (Exception e) {
+			System.out.println("Failed deserializing. Please retry.");
+			e.printStackTrace();
+		}
+		return nodes;
 	}
 	
 	public DatabaseConfiguration getDatabaseConfig() {
