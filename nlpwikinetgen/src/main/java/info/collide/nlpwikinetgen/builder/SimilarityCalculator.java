@@ -6,39 +6,46 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.index.IndexWriter;
-import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
-import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import dkpro.similarity.algorithms.api.SimilarityException;
 import dkpro.similarity.algorithms.api.TextSimilarityMeasure;
 import info.collide.nlpwikinetgen.type.DoubleNode;
 
+/**
+ * Uses {@link TextSimilarityMeasure} to calculate similarity between two revisions.
+ * 
+ * Calculates similarity with given measure of revisions n and n-1 and saves it to
+ * a {@link DoubleNode}.
+ * 
+ * @author Tobias Graeve
+ *
+ */
 public class SimilarityCalculator implements GraphDataComponent {
 	
-	DatabaseConfiguration dbConfig;
-	Wikipedia wiki;
-	RevisionApi revApi;
-	IndexWriter indexWriter;
-	String path;
-	Document doc;
-	Field revId;
-	Field article;
+	private RevisionApi revApi;
+	private String path;
 	private List<DoubleNode> nodes;
 	private String prevText;
-	private String pageId;
 	private String title;
 	private TextSimilarityMeasure tsm;
-	String descr;
+	private String descr;
 	
+	/**
+	 * @param revApi Instance of {@link RevisionApi}
+	 * @param tsm Instance of {@link TextSimilarityMeasure}
+	 */
 	public SimilarityCalculator(RevisionApi revApi, TextSimilarityMeasure tsm) {
 		this.revApi = revApi;
 		this.tsm = tsm;
 		nodes = new ArrayList<DoubleNode>();
 	}
 	
+	/**
+	 * @param revApi Instance of {@link RevisionApi}.
+	 * @param tsm Instance of {@link TextSimilarityMeasure}.
+	 * @param descr Unique identifier of module.
+	 * @param path Path to output folder.
+	 */
 	public SimilarityCalculator(RevisionApi revApi, TextSimilarityMeasure tsm, String descr, String path) {
 		this.revApi = revApi;
 		this.tsm = tsm;
@@ -47,13 +54,11 @@ public class SimilarityCalculator implements GraphDataComponent {
 		nodes = new ArrayList<DoubleNode>();
 	}
 	
-
 	@Override
 	public void nextPage(String pageId, String title) throws Exception {
 		this.title = title;
 		prevText = "";
 	}
-
 
 	@Override
 	public void nextRevision(String revisionId, String text, Timestamp t) throws Exception {
@@ -71,7 +76,7 @@ public class SimilarityCalculator implements GraphDataComponent {
 	}
 
 	@Override
-	public List<DoubleNode> close() {
+	public void close() {
 		//Serialize nodes and edges
         FileOutputStream fos;
 		try {
@@ -83,13 +88,11 @@ public class SimilarityCalculator implements GraphDataComponent {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
 	}
 
 	@Override
 	public void setDescr(String descr) {
 		this.descr = descr;
-		
 	}
 
 	@Override
@@ -102,12 +105,10 @@ public class SimilarityCalculator implements GraphDataComponent {
 		return sc;
 	}
 
-
 	@Override
 	public void setOutputPath(String path) {
 		this.path = path;
 	}
-
 
 	@Override
 	public String getOutputPath() {

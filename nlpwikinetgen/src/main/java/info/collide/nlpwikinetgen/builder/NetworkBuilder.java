@@ -95,7 +95,7 @@ public class NetworkBuilder implements GraphDataComponent {
 	}
 	
 	@Override
-	public Object close() {
+	public void close() {
 		//Serialize nodes and edges
         FileOutputStream fos;
 		try {
@@ -110,7 +110,6 @@ public class NetworkBuilder implements GraphDataComponent {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
 	}
 	
 	

@@ -6,9 +6,18 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import info.collide.nlpwikinetgen.type.BoolNode;
 
+/**
+ * Module that retrieves the internal minor flag out of mediawiki data.
+ * 
+ * Uses revision data of {@link Revision}.
+ * 
+ * @author Tobias Graeve
+ *
+ */
 public class WikiMinorFlag implements GraphDataComponent {
 	String descr = "Wiki_Minor_Flag";
 	RevisionApi revApi;
@@ -16,11 +25,18 @@ public class WikiMinorFlag implements GraphDataComponent {
 	String path;
 	String title;
 	
+	/**
+	 * @param revApi Instance of {@link RevisionApi}.
+	 */
 	public WikiMinorFlag(RevisionApi revApi) {
 		this.revApi = revApi;
 		this.nodes = new ArrayList<BoolNode>();
 	}
 	
+	/**
+	 * @param revApi Instance of {@link RevisionApi}.
+	 * @param path Path to output folder.
+	 */
 	public WikiMinorFlag(RevisionApi revApi, String path) {
 		this.revApi = revApi;
 		this.path = path;
@@ -38,7 +54,7 @@ public class WikiMinorFlag implements GraphDataComponent {
 	}
 
 	@Override
-	public Object close() {
+	public void close() {
 		//Serialize nodes and edges
         FileOutputStream fos;
 		try {
@@ -50,7 +66,6 @@ public class WikiMinorFlag implements GraphDataComponent {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
 	}
 
 	@Override
@@ -64,6 +79,7 @@ public class WikiMinorFlag implements GraphDataComponent {
 		return descr;
 	}
 	
+	@Override
 	public Object clone() {
 		WikiMinorFlag wmf = new WikiMinorFlag(revApi, path);
 		return wmf;

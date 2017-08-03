@@ -99,17 +99,14 @@ public class DumpIndexer implements GraphDataComponent {
 	}
 	
 	@Override
-	public Object close() {
+	public void close() {
 		try {
 			indexWriter.commit();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
 	}
-	
-	
 	
 	@Override
 	public void setDescr(String descr) {
