@@ -6,9 +6,17 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.tudarmstadt.ukp.wikipedia.datamachine.domain.JWPLDataMachine;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import info.collide.nlpwikinetgen.type.IntNode;
 
+/**
+ * Module that calculates the length difference between two revisions.
+ * 
+ * 
+ * @author Tobias Graeve
+ *
+ */
 public class CharacterLengthDifference implements GraphDataComponent {
 	
 	RevisionApi revApi;
@@ -18,11 +26,21 @@ public class CharacterLengthDifference implements GraphDataComponent {
 	int prevLength;
 	String descr = "Character_Length_Difference";
 	
+	/**
+	 * 
+	 * @param revApi Instance of {@link RevisionApi} 
+	 */
 	public CharacterLengthDifference(RevisionApi revApi) {
 		this.revApi = revApi;
 		this.nodes = new ArrayList<IntNode>();
 	}
 	
+	/**
+	 * 
+	 * @param revApi Instance of {@link RevisionApi}.
+	 * @param descr Unique identifier of module.
+	 * @param path Path to output folder.
+	 */
 	public CharacterLengthDifference(RevisionApi revApi, String descr, String path) {
 		this.revApi = revApi;
 		this.descr = descr;
