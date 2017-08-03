@@ -20,9 +20,9 @@ import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
 import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
-import info.collide.nlpwikinetgen.builder.GraphDataComponent;
+import info.collide.nlpwikinetgen.builder.GraphDataAnalyzer;
 
-public class DumpIndexer extends GraphDataComponent {
+public class DumpIndexer extends GraphDataAnalyzer {
 	
 	DatabaseConfiguration dbConfig;
 	Wikipedia wiki;

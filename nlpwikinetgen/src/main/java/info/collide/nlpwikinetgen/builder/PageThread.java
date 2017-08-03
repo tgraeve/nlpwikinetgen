@@ -20,11 +20,11 @@ public class PageThread implements Runnable {
 	private RevisionApi revApi;
 	private NetworkBuilder netBuilder;
 	private DumpIndexer indexer;
-	private List<GraphDataComponent> filter;
+	private List<GraphDataAnalyzer> filter;
 	
 	final Lock lock = new ReentrantLock();
 	
-	public PageThread(Page page, RevisionApi revApi, NetworkBuilder netBuilder, DumpIndexer indexer, List<GraphDataComponent> filter) {
+	public PageThread(Page page, RevisionApi revApi, NetworkBuilder netBuilder, DumpIndexer indexer, List<GraphDataAnalyzer> filter) {
 		this.page = page;
 		this.revApi = revApi;
 		this.netBuilder = netBuilder;
@@ -48,7 +48,7 @@ public class PageThread implements Runnable {
 		if (indexer != null) {indexer.nextPage(sPageId, title);}
 		
 		if (filter != null) {
-			for(GraphDataComponent component : filter) {
+			for(GraphDataAnalyzer component : filter) {
 				try {
 					component.nextPage(sPageId, title);
 				} catch (Exception e) {
@@ -81,7 +81,7 @@ public class PageThread implements Runnable {
         		if (indexer != null) {indexer.nextRevision(revisionId, text, t);}
         		
         		if (filter != null) {
-        			for(GraphDataComponent component : filter) {
+        			for(GraphDataAnalyzer component : filter) {
         				try {
     						component.nextRevision(revisionId, text, t);
     					} catch (Exception e) {
@@ -99,7 +99,7 @@ public class PageThread implements Runnable {
 			lock.unlock();
 		}
 		if (filter != null) {
-			for(GraphDataComponent component : filter) {
+			for(GraphDataAnalyzer component : filter) {
 				component.close();
 			}
 		}

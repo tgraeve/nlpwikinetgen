@@ -32,7 +32,7 @@ import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiInitializationException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
-import info.collide.nlpwikinetgen.builder.GraphDataComponent;
+import info.collide.nlpwikinetgen.builder.GraphDataAnalyzer;
 import info.collide.nlpwikinetgen.builder.NetworkBuilder;
 import info.collide.nlpwikinetgen.builder.PageThread;
 import info.collide.nlpwikinetgen.lucene.DumpIndexer;
@@ -58,8 +58,8 @@ public class DataBuilder extends Task{
 	private String category;
 	private boolean buildGraph;
 	private boolean buildIndex;
-	private List<GraphDataComponent> filter;
-	private List<GraphDataComponent> filters;
+	private List<GraphDataAnalyzer> filter;
+	private List<GraphDataAnalyzer> filters;
 
 
 	private List<String> folderMeta;
@@ -186,7 +186,7 @@ public class DataBuilder extends Task{
 			System.out.println("IndexWriter closed.");
 		}
 		if (filter != null) {
-			for(GraphDataComponent f : filter) {
+			for(GraphDataAnalyzer f : filter) {
 				String des = f.getDescr();
 				System.out.println("Started to concat single filter files of "+des);
 				List<BasicNode> finalNodes = new ArrayList<BasicNode>();
@@ -205,7 +205,7 @@ public class DataBuilder extends Task{
 	}
 		
 	private void executePage(Page page, ExecutorService ex) {
-		filters = new ArrayList<GraphDataComponent>();
+		filters = new ArrayList<GraphDataAnalyzer>();
 		if (buildGraph) {
 			revNet = new NetworkBuilder(wiki, revApi, pathToFolder);
 		}
@@ -218,8 +218,8 @@ public class DataBuilder extends Task{
 			}
 		}
 		if(filter != null) {
-			for(GraphDataComponent f : filter) {
-				GraphDataComponent cloned = (GraphDataComponent) f.clone();
+			for(GraphDataAnalyzer f : filter) {
+				GraphDataAnalyzer cloned = (GraphDataAnalyzer) f.clone();
 				cloned.setPath(pathToFolder);
 				filters.add(cloned);
 			}
@@ -358,11 +358,11 @@ public class DataBuilder extends Task{
 		return revApi;
 	}
 	
-	public List<GraphDataComponent> getFilter() {
+	public List<GraphDataAnalyzer> getFilter() {
 		return filter;
 	}
 
-	public void setFilter(List<GraphDataComponent> filter) {
+	public void setFilter(List<GraphDataAnalyzer> filter) {
 		this.filter = filter;
 	}
 }

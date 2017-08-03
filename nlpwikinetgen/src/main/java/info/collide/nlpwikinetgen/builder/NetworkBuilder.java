@@ -17,7 +17,7 @@ import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import info.collide.nlpwikinetgen.type.Edge;
 import info.collide.nlpwikinetgen.type.Node;
 
-public class NetworkBuilder extends GraphDataComponent {
+public class NetworkBuilder extends GraphDataAnalyzer {
 	private Wikipedia wiki;
 	
 	private String pageId;

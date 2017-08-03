@@ -20,7 +20,7 @@ import info.collide.nlpwikinetgen.type.DoubleNode;
  * @author Tobias Graeve
  *
  */
-public class SimilarityCalculator extends GraphDataComponent {
+public class SimilarityCalculator extends GraphDataAnalyzer {
 	
 	private List<DoubleNode> nodes;
 	private String prevText;

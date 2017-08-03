@@ -107,7 +107,7 @@ public class DataBuilderController implements Initializable {
 	public void generate(ActionEvent e) throws IOException {
 		boolean wholeWiki = cbWholeWiki.isSelected();
 		String category = null;
-		List<GraphDataComponent> filter = new ArrayList<>();
+		List<GraphDataAnalyzer> filter = new ArrayList<>();
 		
 		if (!wholeWiki) {
 			category = tfCategory.getText();
