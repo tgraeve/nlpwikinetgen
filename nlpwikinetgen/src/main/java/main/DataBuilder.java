@@ -220,7 +220,7 @@ public class DataBuilder extends Task{
 		if(filter != null) {
 			for(GraphDataComponent f : filter) {
 				GraphDataComponent cloned = (GraphDataComponent) f.clone();
-				cloned.setOutputPath(pathToFolder);
+				cloned.setPath(pathToFolder);
 				filters.add(cloned);
 			}
 		}

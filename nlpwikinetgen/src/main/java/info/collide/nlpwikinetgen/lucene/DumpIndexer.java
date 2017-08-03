@@ -22,11 +22,10 @@ import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import info.collide.nlpwikinetgen.builder.GraphDataComponent;
 
-public class DumpIndexer implements GraphDataComponent {
+public class DumpIndexer extends GraphDataComponent {
 	
 	DatabaseConfiguration dbConfig;
 	Wikipedia wiki;
-	RevisionApi revApi;
 	IndexWriter indexWriter;
 	Document doc;
 	Field revId;
@@ -40,7 +39,7 @@ public class DumpIndexer implements GraphDataComponent {
 	String descr;
 	
 	public DumpIndexer(RevisionApi revApi, String outputFolder) {
-		this.revApi = revApi;
+		super(revApi);
 		this.outputFolder = outputFolder;
 		
 		//set lucene config
@@ -65,8 +64,8 @@ public class DumpIndexer implements GraphDataComponent {
 	}
 	
 	public DumpIndexer(IndexWriter indexWriter, RevisionApi revApi, String outputFolder) throws WikiApiException {
+		super(revApi);
 		this.indexWriter = indexWriter;
-		this.revApi = revApi;
 		this.outputFolder = outputFolder;
 		
 		//set lucene config
@@ -137,18 +136,10 @@ public class DumpIndexer implements GraphDataComponent {
 			e.printStackTrace();
 		}
     }
-	public Object clone(){
-		DumpIndexer di = new DumpIndexer(revApi, outputFolder);
-		return di;
-	}
 
 	@Override
-	public void setOutputPath(String path) {
-		this.outputFolder = path;
-	}
-
-	@Override
-	public String getOutputPath() {
-		return outputFolder;
+	public Object clone() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

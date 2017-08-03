@@ -20,22 +20,18 @@ import info.collide.nlpwikinetgen.type.DoubleNode;
  * @author Tobias Graeve
  *
  */
-public class SimilarityCalculator implements GraphDataComponent {
+public class SimilarityCalculator extends GraphDataComponent {
 	
-	private RevisionApi revApi;
-	private String path;
 	private List<DoubleNode> nodes;
 	private String prevText;
-	private String title;
 	private TextSimilarityMeasure tsm;
-	private String descr;
 	
 	/**
 	 * @param revApi Instance of {@link RevisionApi}
 	 * @param tsm Instance of {@link TextSimilarityMeasure}
 	 */
 	public SimilarityCalculator(RevisionApi revApi, TextSimilarityMeasure tsm) {
-		this.revApi = revApi;
+		super(revApi);
 		this.tsm = tsm;
 		nodes = new ArrayList<DoubleNode>();
 	}
@@ -47,16 +43,16 @@ public class SimilarityCalculator implements GraphDataComponent {
 	 * @param path Path to output folder.
 	 */
 	public SimilarityCalculator(RevisionApi revApi, TextSimilarityMeasure tsm, String descr, String path) {
-		this.revApi = revApi;
+		super(revApi);
 		this.tsm = tsm;
-		this.descr = descr;
-		this.path = path;
+		setDescr(descr);
+		setPath(path);
 		nodes = new ArrayList<DoubleNode>();
 	}
 	
 	@Override
 	public void nextPage(String pageId, String title) throws Exception {
-		this.title = title;
+		setTitle(title);
 		prevText = "";
 	}
 
@@ -80,7 +76,7 @@ public class SimilarityCalculator implements GraphDataComponent {
 		//Serialize nodes and edges
         FileOutputStream fos;
 		try {
-			fos = new FileOutputStream(path+"/"+descr+"_"+title+".filter");
+			fos = new FileOutputStream(getPath()+"/"+getDescr()+"_"+getTitle()+".filter");
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 	        oos.writeObject(nodes);
 	        oos.close();
@@ -90,28 +86,8 @@ public class SimilarityCalculator implements GraphDataComponent {
 		}
 	}
 
-	@Override
-	public void setDescr(String descr) {
-		this.descr = descr;
-	}
-
-	@Override
-	public String getDescr() {
-		return descr;
-	}
-	
 	public Object clone() {
-		SimilarityCalculator sc = new SimilarityCalculator(revApi, tsm, descr, path);
+		SimilarityCalculator sc = new SimilarityCalculator(revApi, tsm, getDescr(), getPath());
 		return sc;
-	}
-
-	@Override
-	public void setOutputPath(String path) {
-		this.path = path;
-	}
-
-	@Override
-	public String getOutputPath() {
-		return path;
 	}
 }

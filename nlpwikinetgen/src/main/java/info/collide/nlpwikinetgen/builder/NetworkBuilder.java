@@ -1,9 +1,6 @@
 package info.collide.nlpwikinetgen.builder;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import java.sql.Timestamp;
@@ -20,27 +17,20 @@ import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import info.collide.nlpwikinetgen.type.Edge;
 import info.collide.nlpwikinetgen.type.Node;
 
-public class NetworkBuilder implements GraphDataComponent {
+public class NetworkBuilder extends GraphDataComponent {
 	private Wikipedia wiki;
-	private RevisionApi revApi;
-	private String path;
 	
 	private String pageId;
-	private String title;
 	private String prevId = null;
 	
 	List<Node> nodes;
 	List<Edge> edges;
 	List<String> linkList;
 	
-	public NetworkBuilder(RevisionApi revApi) {
-		this.revApi = revApi;
-	}
-	
 	public NetworkBuilder(Wikipedia wiki, RevisionApi revApi, String path) {
+		super(revApi);
 		this.wiki = wiki;
-		this.revApi = revApi;
-		this.path = path;
+		setPath(path);
 		
 		nodes = new ArrayList<Node>();
 		edges = new ArrayList<Edge>();
@@ -49,7 +39,7 @@ public class NetworkBuilder implements GraphDataComponent {
 	@Override
 	public void nextPage(String pageId, String title) {
 		this.pageId = pageId;
-		this.title = title;
+		setTitle(title);
 		
 		prevId = null;
 		linkList = new LinkedList<String>();
@@ -67,7 +57,7 @@ public class NetworkBuilder implements GraphDataComponent {
 		
 		
 		// add edges for links between pages
-		List<String> newLinks = parseAndCompareLinks(title,text,linkList);
+		List<String> newLinks = parseAndCompareLinks(getTitle(),text,linkList);
 		
 		for(String link : newLinks) {
 			if(!linkList.contains(link.toLowerCase())) {
@@ -99,10 +89,10 @@ public class NetworkBuilder implements GraphDataComponent {
 		//Serialize nodes and edges
         FileOutputStream fos;
 		try {
-			fos = new FileOutputStream(path+"/nodes_"+title+".tmp");
+			fos = new FileOutputStream(getPath()+"/nodes_"+getTitle()+".tmp");
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 	        oos.writeObject(nodes);
-	        fos = new FileOutputStream(path+"/edges_"+title+".tmp");
+	        fos = new FileOutputStream(getPath()+"/edges_"+getTitle()+".tmp");
 	        oos = new ObjectOutputStream(fos);
 	        oos.writeObject(edges);
 	        oos.close();
@@ -165,33 +155,8 @@ public class NetworkBuilder implements GraphDataComponent {
 	}
 
 	@Override
-	public void setDescr(String descr) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getDescr() {
+	public Object clone() {
 		// TODO Auto-generated method stub
 		return null;
-	}
-	
-	public String getPath() {
-		return path;
-	}
-	
-	public Object clone() {
-		NetworkBuilder nb = new NetworkBuilder(revApi);
-		return nb;
-	}
-
-	@Override
-	public void setOutputPath(String path) {
-		this.path = path;
-	}
-
-	@Override
-	public String getOutputPath() {
-		return path;
 	}
 }

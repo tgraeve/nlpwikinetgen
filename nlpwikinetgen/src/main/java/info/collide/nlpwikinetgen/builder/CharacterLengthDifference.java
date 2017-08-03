@@ -19,21 +19,18 @@ import info.collide.nlpwikinetgen.type.IntNode;
  * 
  *
  */
-public class CharacterLengthDifference implements GraphDataComponent {
+public class CharacterLengthDifference extends GraphDataComponent {
 	
-	RevisionApi revApi;
 	List<IntNode> nodes;
-	String path;
-	String title;
 	int prevLength;
-	String descr = "Character_Length_Difference";
 	
 	/**
 	 * 
 	 * @param revApi Instance of {@link RevisionApi} 
 	 */
 	public CharacterLengthDifference(RevisionApi revApi) {
-		this.revApi = revApi;
+		super(revApi);
+		setDescr("Character_Length_Difference");
 		this.nodes = new ArrayList<IntNode>();
 	}
 	
@@ -44,15 +41,15 @@ public class CharacterLengthDifference implements GraphDataComponent {
 	 * @param path Path to output folder.
 	 */
 	public CharacterLengthDifference(RevisionApi revApi, String descr, String path) {
-		this.revApi = revApi;
-		this.descr = descr;
-		this.path = path;
+		super(revApi);
+		setDescr(descr);
+		setPath(path);
 		this.nodes = new ArrayList<IntNode>();
 	}
 
 	@Override
 	public void nextPage(String pageId, String title) throws Exception {
-		this.title = title;
+		setTitle(title);
 		this.prevLength = 0;
 	}
 
@@ -68,7 +65,7 @@ public class CharacterLengthDifference implements GraphDataComponent {
 		//Serialize nodes and edges
         FileOutputStream fos;
 		try {
-			fos = new FileOutputStream(path+"/"+descr+"_"+title+".filter");
+			fos = new FileOutputStream(getPath()+"/"+getDescr()+"_"+getTitle()+".filter");
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 	        oos.writeObject(nodes);
 	        oos.close();
@@ -79,29 +76,8 @@ public class CharacterLengthDifference implements GraphDataComponent {
 	}
 	
 	@Override
-	public void setDescr(String descr) {
-		this.descr = descr;
-		
-	}
-
-	@Override
-	public String getDescr() {
-		return descr;
-	}
-	
-	@Override
 	public Object clone() {
-		CharacterLengthDifference cld = new CharacterLengthDifference(revApi, descr, path);
+		CharacterLengthDifference cld = new CharacterLengthDifference(revApi, getDescr(), getPath());
 		return cld;
-	}
-
-	@Override
-	public void setOutputPath(String path) {
-		this.path = path;
-	}
-
-	@Override
-	public String getOutputPath() {
-		return path;
 	}
 }
