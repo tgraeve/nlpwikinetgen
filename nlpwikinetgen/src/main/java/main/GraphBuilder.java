@@ -3,9 +3,15 @@ package main;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.spark.api.java.function.ForeachFunction;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Encoder;
+import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
@@ -22,7 +28,7 @@ import info.collide.nlpwikinetgen.type.IntNode;
 import info.collide.nlpwikinetgen.type.Node;
 import info.collide.nlpwikinetgen.type.StringPair;
 
-public class GraphBuilder {
+public class GraphBuilder implements Serializable {
 	static SparkSession spark;
 	List<Node> nodes;
 	List<Edge> edges;
@@ -36,8 +42,14 @@ public class GraphBuilder {
 		
 		spark = SparkSession.builder()
 				.appName("NLPWikiNetGen")
-				.master("local[2]")
+				.master("local[*]")
+				.config("spark.executor.memory", "8g")
+				.config("spark.driver.memory", "8g")
+				.config("spark_local_ip","127.0.0.1")
 				.getOrCreate();
+		
+		//set runtime options
+		spark.sparkContext().setCheckpointDir(pathToFolder+"/cp-dir");
 		
 		Logger.getLogger("org").setLevel(Level.WARN);
 		
@@ -46,15 +58,21 @@ public class GraphBuilder {
 		nodes = deserializeNodes(pathToFolder);
 		edges = deserializeEdges(pathToFolder);
 		
-		dfNodes = spark.createDataFrame(nodes, Node.class);
-		dfEdges = spark.createDataFrame(edges, Edge.class);
-		dfNodes.cache();
-		dfEdges.cache();
 //		gf = new GraphFrame(dfNodes, dfEdges);
 	}
 	
 	public void generateGraph(List<StringPair> filters, ArrayList<String> keyRev) throws IOException {
 		Dataset<Row> allNodes;
+		GMLWriter writer = new GMLWriter(pathToFolder);
+		
+		Encoder<Node> nodeEncoder = Encoders.bean(Node.class);
+		Encoder<Edge> edgeEncoder = Encoders.bean(Edge.class);
+		
+		dfNodes = spark.createDataFrame(nodes, Node.class);
+		dfEdges = spark.createDataFrame(edges, Edge.class);
+		dfNodes.cache();
+		dfEdges.cache();
+		
 		if(keyRev==null) {
 			allNodes = dfNodes;
 		}
@@ -62,95 +80,156 @@ public class GraphBuilder {
 			allNodes = dfNodes.filter(n -> !keyRev.contains(n.getString(0)));
 		}
 		
-		List<String> allNodeList = allNodes.javaRDD().map(r -> r.getString(0)).collect();
-		Dataset<Row> minorNodes = getMergedMinorNodes(filters);
-		List<String> minorList = minorNodes.javaRDD().map(r -> r.getString(0)).collect();
-		Dataset<Row> majorNodes = allNodes.filter(n -> !minorList.contains(n.getString(0)));
-		List<Node> majorNodeList = majorNodes.javaRDD().map(r -> new Node(r.getString(0),r.getString(1))).collect();
-		majorNodes.show();
-		
-		//edges of type "link" where neither source nor destination are deleted can be kept
-		Dataset<Row> allLinks = dfEdges.filter("type = 'link'").filter(r -> allNodeList.contains(r.getString(1)));
-		Dataset<Row> unaffectedLinks = allLinks.filter(e -> !minorList.contains(e.getString(0))).filter(e -> !minorList.contains(e.getString(1)));
-		unaffectedLinks.show();
-		List<Edge> unaffectedLinksList = unaffectedLinks.javaRDD().map(r -> new Edge(r.getString(1),r.getString(0),r.getString(2))).collect(); //mind order of columns is not order of native node class!
-		System.out.println(allLinks.count() +" ###" + unaffectedLinksList.size());
-		Dataset<Row> affectedLinks = allLinks.except(unaffectedLinks);
-		List<Edge> affectedLinkEdges = affectedLinks.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect();
-//		List<String> affectedLinkSrc = affectedLinks.select("src").javaRDD().map(r -> r.getString(1)).collect();
-		
-		/*
-		 * rebuilds revision edges for all remaining nodes
-		 * 
-		 * no big benefit through optimization like no rebuilding if no revision of a page is affected, because
-		 * this is almost not the case.
-		 * same for processing every deleted node separately 
-		 * 
-		 * 
-		 */
-		
-		List<Edge> corrRevEdges = new ArrayList<>();
-		String pageId = "";
-		String prevRevId = "";
-		String prevPageId = "";
-		
-		for(Node n : majorNodeList) {
-			pageId = n.getPageId();
+		if(filters.size()>0 || keyRev!=null) {
 			
-			if (prevRevId != "") {
-				if (prevPageId.equals(n.getPageId())) {
-					corrRevEdges.add(new Edge(prevRevId,n.getId(),"revision"));
+			Dataset<Row> minorNodeIds = getMergedMinorNodes(filters);
+			minorNodeIds.show();
+			allNodes.show();
+			Dataset<Row> minorNodes = allNodes.join(minorNodeIds, allNodes.col("id").equalTo(minorNodeIds.col("id"))).drop(minorNodeIds.col("id"));
+			minorNodes.show();
+			Dataset<Row> majorNodes = allNodes.except(minorNodes);
+			majorNodes.show();
+			
+			List<Node> majorNodeList = majorNodes.javaRDD().map(r -> new Node(r.getString(0),r.getString(1))).collect();
+			System.out.println(majorNodeList.get(0).getId()+ " - "+majorNodeList.get(0).getPageId()+ " ## " + majorNodeList.get(1).getId()+ " - "+majorNodeList.get(1).getPageId());
+			
+			//edges of type "link" where neither source nor destination are deleted can be kept
+			Dataset<Row> allLinks = dfEdges.filter("type = 'link'").join(dfNodes, dfEdges.col("src").equalTo(dfNodes.col("id"))).drop("id", "pageid").dropDuplicates(); //sort out links from foreign sites (where no nodes in data are existent)
+			
+			allLinks.printSchema();
+			majorNodes.printSchema();
+			Dataset<Row> unaffectedLinks = allLinks.join(majorNodes, allLinks.col("src").equalTo(majorNodes.col("id"))).drop("id","pageid");
+			unaffectedLinks.printSchema();
+			unaffectedLinks = unaffectedLinks.join(majorNodes, unaffectedLinks.col("dst").equalTo(majorNodes.col("id"))).drop("id", "pageid");
+			unaffectedLinks.printSchema();
+			
+			List<Edge> unaffectedLinksList = unaffectedLinks.javaRDD().map(r -> new Edge(r.getString(1),r.getString(0),r.getString(2))).collect(); //mind order of columns is not order of native node class!
+//			System.out.println(allLinks.count() +" ###" + unaffectedLinksList.size());
+			Dataset<Row> affectedLinks = allLinks.except(unaffectedLinks);
+			System.out.println("reached");
+			
+			
+			List<Edge> affectedLinkEdges = affectedLinks.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect(); //TODO eliminate list
+//			List<String> affectedLinkSrc = affectedLinks.select("src").javaRDD().map(r -> r.getString(1)).collect();
+			
+			/*
+			 * rebuilds revision edges for all remaining nodes
+			 * 
+			 * no big benefit through optimization like no rebuilding if no revision of a page is affected, because
+			 * this is almost not the case.
+			 * same for processing every deleted node separately 
+			 * 
+			 * 
+			 */
+			
+//			System.out.println("GROESSE: "+majorNodes.count());
+//			
+			List<Edge> corrRevEdges = new ArrayList<Edge>();
+//			
+//			majorNodes.foreach(new ForeachFunction<Row>() {
+//				String prevRevId = "";
+//				String prevPageId = "";
+//				
+//				@Override
+//				public void call(Row r) throws Exception {
+//					String pageId = r.getString(1);
+//					String revId = r.getString(0);
+//					System.out.println("now "+pageId + " ## "+revId);
+//					
+//					if (prevRevId != "") {
+//						if (prevPageId.equals(pageId)) {
+//							corrRevEdges.add(new Edge(prevRevId,revId,"revision"));
+//						}
+//					}
+//					prevRevId = revId;
+//					prevPageId = pageId;
+//				}
+//				
+//			});
+			
+//			System.out.println(corrRevEdges.size());
+			
+			
+			String pageId = "";
+			String prevRevId = "";
+			String prevPageId = "";
+			
+			for(Node n : majorNodeList) {
+				pageId = n.getPageId();
+				
+				if (prevRevId != "") {
+					if (prevPageId.equals(n.getPageId())) {
+						corrRevEdges.add(new Edge(prevRevId,n.getId(),"revision"));
+					}
 				}
+				prevRevId = n.getId();
+				prevPageId = n.getPageId();
 			}
-			prevRevId = n.getId();
-			prevPageId = n.getPageId();
-		}
-		
-		List<Edge> corrLinkEdges = new ArrayList<>();
-		for(Edge e : affectedLinkEdges) {
-			String src = e.getSrc();
 			
-			String srcPage = dfNodes.filter("id="+src).first().getString(1);
-			String newSource = majorNodes.filter("pageId="+srcPage).first().getString(0);
-			Edge corrEdge = new Edge(newSource,e.getDst(),e.getType());
-			corrLinkEdges.add(corrEdge);
+			List<Edge> corrLinkEdges = new ArrayList<Edge>();
+			for(Edge e : affectedLinkEdges) {
+				String src = e.getSrc();
+				
+				String srcPage = dfNodes.filter("id="+src).first().getString(1);
+				String newSource = majorNodes.filter("pageId="+srcPage).first().getString(0);
+				Edge corrEdge = new Edge(newSource,e.getDst(),e.getType());
+				corrLinkEdges.add(corrEdge);
+			}
+			
+			List<Edge> allCorrEdges = new ArrayList<>();
+			allCorrEdges.addAll(unaffectedLinksList);
+			allCorrEdges.addAll(corrRevEdges);
+			allCorrEdges.addAll(corrLinkEdges);
+			
+			System.out.println("ALLE KNOTEN: "+allNodes.count()+" MINUS "+minorNodes.count()+" = "+majorNodes.count()+" KNOTEN UND "+allCorrEdges.size()+" KANTEN!");
+			writer.writeFile(majorNodeList, allCorrEdges);
 		}
+		else {
+			writer.writeFile(nodes, edges);
+		}
+		spark.stop();
+	}
+	
+	private void corrRevEdges() {
 		
-		List<Edge> allCorrEdges = new ArrayList<>();
-		allCorrEdges.addAll(unaffectedLinksList);
-		allCorrEdges.addAll(corrRevEdges);
-		allCorrEdges.addAll(corrLinkEdges);
-		
-		System.out.println("ALLE KNOTEN: "+allNodes.count()+" MINUS "+minorList.size()+" = "+majorNodeList.size()+" KNOTEN UND "+allCorrEdges.size()+" KANTEN!");
-		GMLWriter writer = new GMLWriter(pathToFolder);
-		writer.writeFile(majorNodeList, allCorrEdges);
 	}
 	
 	private Dataset<Row> verifyMinorNodes(Dataset<Row> minorNodes) {
 		Dataset<Row> linkDst = dfEdges.filter("type='link'").select("dst");
-		Dataset<Row> verifiedNodes = minorNodes.except(linkDst);				//filter nodes with inlinks
+		linkDst.show();
 		Dataset<Row> revDst = dfEdges.filter("type='revision'").select("dst");
-		verifiedNodes = verifiedNodes.except(dfNodes.select("id").except(revDst)); //filter nodes which have no revision inlink (first nodes)
+		revDst.show();
+		Dataset<Row> verifiedNodes = minorNodes.except(linkDst); //delete link destinations and start nodes out of minor nodes
+		System.out.println("verified.");
+		verifiedNodes.show();
+		verifiedNodes.intersect(revDst);
+		verifiedNodes.show();
+		
+//		verifiedNodes = verifiedNodes.except(dfNodes.select("id").except(revDst)); //filter nodes which have no revision inlink (first nodes)
 		return verifiedNodes;
 	}
 	
 	public Dataset<Row> getMergedMinorNodes(List<StringPair> filters) {
 		StructType schema = DataTypes.createStructType(new StructField[] {DataTypes.createStructField("id", DataTypes.StringType, false)});
-		Dataset<Row> mergedNodes = spark.createDataFrame(new ArrayList<Row>(),schema);
+//		Dataset<Row> mergedNodes = spark.createDataFrame(new ArrayList<Row>(),schema);
+		List<Row> mergedNodes = new ArrayList<Row>();
 
 		for(StringPair s : filters) {
-			mergedNodes = mergedNodes.union(getMinorNodes(s.getS1(), s.getS2()).select("id"));
-			mergedNodes.cache(); 
+			mergedNodes.addAll(getMinorNodes(s.getS1(), s.getS2()));
+//			mergedNodes.cache();
 		}
-		mergedNodes = mergedNodes.distinct();
-		mergedNodes = verifyMinorNodes(mergedNodes);
-		return mergedNodes;
+		Dataset<Row> minorNodes = spark.createDataFrame(mergedNodes, schema);
+		minorNodes.show();
+		minorNodes = minorNodes.distinct();
+		minorNodes.show();
+		minorNodes = verifyMinorNodes(minorNodes);
+		return minorNodes;
 	}
 	
-	public Dataset<Row> getMinorNodes(String data, Object threshold) {
+	public List<Row> getMinorNodes(String data, Object threshold) { //TODO tipp: avoiding redundant swap Dataset <-> ArrayList would tweak performance!
 		Dataset<Row> df = null;
 		Dataset<Row> minor = null;
-		List<BasicNode> nodes = deserialize(data);
+		List nodes = deserialize(data);
 		if (nodes.get(0).getClass()==DoubleNode.class) {
 			df = spark.createDataFrame(nodes, DoubleNode.class);
 			minor = df.filter("value>"+threshold);
@@ -161,7 +240,11 @@ public class GraphBuilder {
 			df = spark.createDataFrame(nodes, IntNode.class);
 			minor = df.filter("value<"+threshold);
 		}
-		return minor;
+		minor.show();
+		minor = minor.drop("value");
+		minor.show();
+//		return minor.javaRDD().map(r -> new Node(r.getString(0))).collect();
+		return minor.collectAsList();
 	}
 	
 	private ArrayList<BasicNode> deserialize(String filter) {

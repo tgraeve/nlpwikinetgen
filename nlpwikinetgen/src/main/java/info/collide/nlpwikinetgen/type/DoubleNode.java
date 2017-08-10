@@ -6,7 +6,11 @@ public class DoubleNode extends BasicNode {
 	 * 
 	 */
 	private static final long serialVersionUID = 1170671657280438989L;
-	public double value;
+	private double value;
+	
+	public DoubleNode() {
+		
+	}
 	
 	public DoubleNode (String id, double value) {
 		super(id);
@@ -19,5 +23,9 @@ public class DoubleNode extends BasicNode {
 
 	public void setValue(double value) {
 		this.value = value;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
 	}
 }

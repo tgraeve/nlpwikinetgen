@@ -8,9 +8,14 @@ public class Edge implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 6419409809982356478L;
+
 	private String src;
     private String dst;
 	private String type;
+	
+	public Edge() {
+		
+	}
 
     public Edge(String src, String dst, String type) {
         this.src = src;
@@ -18,6 +23,10 @@ public class Edge implements Serializable {
         this.type = type;
     }
 
+	public void setType(String type) {
+		this.type = type;
+	}
+	
     public String getType() {
     	return type;
     }
@@ -53,5 +62,9 @@ public class Edge implements Serializable {
 
 	public void setDst(String dst) {
 		this.dst = dst;
+	}
+	
+	public static long getSerialversionuid() {
+		return serialVersionUID;
 	}
 }

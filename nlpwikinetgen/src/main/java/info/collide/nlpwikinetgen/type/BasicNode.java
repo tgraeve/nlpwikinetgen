@@ -7,7 +7,10 @@ public class BasicNode implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 6103387860681425918L;
-	public String id;
+	private String id;
+	
+	public BasicNode() {
+	}
 	
 	public BasicNode (String id) {
 		this.id = id;
@@ -19,5 +22,9 @@ public class BasicNode implements Serializable {
 	
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
 	}
 }
