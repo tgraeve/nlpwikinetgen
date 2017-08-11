@@ -14,9 +14,12 @@ import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import org.apache.spark.storage.StorageLevel;
+import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.COL;
 import org.apache.log4j.*;
 import org.graphframes.GraphFrame;
 import info.collide.nlpwikinetgen.helper.GMLWriter;
@@ -58,15 +61,11 @@ public class GraphBuilder implements Serializable {
 		nodes = deserializeNodes(pathToFolder);
 		edges = deserializeEdges(pathToFolder);
 		
-//		gf = new GraphFrame(dfNodes, dfEdges);
 	}
 	
 	public void generateGraph(List<StringPair> filters, ArrayList<String> keyRev) throws IOException {
 		Dataset<Row> allNodes;
 		GMLWriter writer = new GMLWriter(pathToFolder);
-		
-		Encoder<Node> nodeEncoder = Encoders.bean(Node.class);
-		Encoder<Edge> edgeEncoder = Encoders.bean(Edge.class);
 		
 		dfNodes = spark.createDataFrame(nodes, Node.class);
 		dfEdges = spark.createDataFrame(edges, Edge.class);
@@ -79,34 +78,41 @@ public class GraphBuilder implements Serializable {
 		else {
 			allNodes = dfNodes.filter(n -> !keyRev.contains(n.getString(0)));
 		}
+		allNodes.cache();
 		
 		if(filters.size()>0 || keyRev!=null) {
 			
 			Dataset<Row> minorNodeIds = getMergedMinorNodes(filters);
-			minorNodeIds.show();
-			allNodes.show();
 			Dataset<Row> minorNodes = allNodes.join(minorNodeIds, allNodes.col("id").equalTo(minorNodeIds.col("id"))).drop(minorNodeIds.col("id"));
-			minorNodes.show();
 			Dataset<Row> majorNodes = allNodes.except(minorNodes);
-			majorNodes.show();
-			
-			List<Node> majorNodeList = majorNodes.javaRDD().map(r -> new Node(r.getString(0),r.getString(1))).collect();
-			System.out.println(majorNodeList.get(0).getId()+ " - "+majorNodeList.get(0).getPageId()+ " ## " + majorNodeList.get(1).getId()+ " - "+majorNodeList.get(1).getPageId());
+			majorNodes.cache();
 			
 			//edges of type "link" where neither source nor destination are deleted can be kept
 			Dataset<Row> allLinks = dfEdges.filter("type = 'link'").join(dfNodes, dfEdges.col("src").equalTo(dfNodes.col("id"))).drop("id", "pageid").dropDuplicates(); //sort out links from foreign sites (where no nodes in data are existent)
+			allLinks.cache();
 			
-			allLinks.printSchema();
-			majorNodes.printSchema();
 			Dataset<Row> unaffectedLinks = allLinks.join(majorNodes, allLinks.col("src").equalTo(majorNodes.col("id"))).drop("id","pageid");
-			unaffectedLinks.printSchema();
 			unaffectedLinks = unaffectedLinks.join(majorNodes, unaffectedLinks.col("dst").equalTo(majorNodes.col("id"))).drop("id", "pageid");
-			unaffectedLinks.printSchema();
 			
 			List<Edge> unaffectedLinksList = unaffectedLinks.javaRDD().map(r -> new Edge(r.getString(1),r.getString(0),r.getString(2))).collect(); //mind order of columns is not order of native node class!
 //			System.out.println(allLinks.count() +" ###" + unaffectedLinksList.size());
 			Dataset<Row> affectedLinks = allLinks.except(unaffectedLinks);
 			System.out.println("reached");
+			
+			Dataset<Row> joined = affectedLinks.join(allNodes, affectedLinks.col("src").equalTo(allNodes.col("id"))).drop("id");
+			joined.printSchema();
+			System.out.println(joined.count());
+			joined = joined.join(majorNodes, joined.col("pageId").equalTo(majorNodes.col("pageId"))).drop("pageId").drop(majorNodes.col("pageId"));
+			joined.printSchema();
+			joined = joined.filter(x -> Integer.parseInt(x.getString(1)) > Integer.parseInt(x.getString(3))).withColumn("id", joined.col("id").cast("int"));
+			joined.printSchema();
+			joined.show();
+			joined = joined.groupBy("dst","src","type").max("id");
+			joined.printSchema();
+			joined.show();
+			System.out.println(joined.count());
+			
+
 			
 			
 			List<Edge> affectedLinkEdges = affectedLinks.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect(); //TODO eliminate list
@@ -122,56 +128,39 @@ public class GraphBuilder implements Serializable {
 			 * 
 			 */
 			
-//			System.out.println("GROESSE: "+majorNodes.count());
-//			
+			List<Node> majorNodeList = majorNodes.sort(org.apache.spark.sql.functions.asc("pageId")).javaRDD().map(r -> new Node(r.getString(0),r.getString(1))).collect();
 			List<Edge> corrRevEdges = new ArrayList<Edge>();
-//			
-//			majorNodes.foreach(new ForeachFunction<Row>() {
-//				String prevRevId = "";
-//				String prevPageId = "";
-//				
-//				@Override
-//				public void call(Row r) throws Exception {
-//					String pageId = r.getString(1);
-//					String revId = r.getString(0);
-//					System.out.println("now "+pageId + " ## "+revId);
-//					
-//					if (prevRevId != "") {
-//						if (prevPageId.equals(pageId)) {
-//							corrRevEdges.add(new Edge(prevRevId,revId,"revision"));
-//						}
-//					}
-//					prevRevId = revId;
-//					prevPageId = pageId;
-//				}
-//				
-//			});
-			
-//			System.out.println(corrRevEdges.size());
-			
-			
-			String pageId = "";
+
+			String pageId;
+			String revId;
 			String prevRevId = "";
 			String prevPageId = "";
 			
 			for(Node n : majorNodeList) {
 				pageId = n.getPageId();
+				revId = n.getId();
 				
 				if (prevRevId != "") {
-					if (prevPageId.equals(n.getPageId())) {
-						corrRevEdges.add(new Edge(prevRevId,n.getId(),"revision"));
+					if (prevPageId.equals(pageId)) {
+						corrRevEdges.add(new Edge(prevRevId,revId,"revision"));
 					}
 				}
-				prevRevId = n.getId();
-				prevPageId = n.getPageId();
+				prevRevId = revId;
+				prevPageId = pageId;
 			}
 			
+			System.out.println("Creating actual Graph..");
+			gf = new GraphFrame(majorNodes, spark.createDataFrame(corrRevEdges, Edge.class));
+			
+
+		
+
 			List<Edge> corrLinkEdges = new ArrayList<Edge>();
 			for(Edge e : affectedLinkEdges) {
 				String src = e.getSrc();
 				
-				String srcPage = dfNodes.filter("id="+src).first().getString(1);
-				String newSource = majorNodes.filter("pageId="+srcPage).first().getString(0);
+				String srcPage = dfNodes.filter(x -> x.getString(0).equals(src)).first().getString(1);
+				String newSource = majorNodes.filter(x -> x.getString(1).equals(srcPage)).filter(x -> Integer.parseInt(x.getString(0)) < Integer.parseInt(src)).first().getString(0); //TODO fail! takes always first node
 				Edge corrEdge = new Edge(newSource,e.getDst(),e.getType());
 				corrLinkEdges.add(corrEdge);
 			}
@@ -190,22 +179,13 @@ public class GraphBuilder implements Serializable {
 		spark.stop();
 	}
 	
-	private void corrRevEdges() {
-		
-	}
-	
 	private Dataset<Row> verifyMinorNodes(Dataset<Row> minorNodes) {
 		Dataset<Row> linkDst = dfEdges.filter("type='link'").select("dst");
-		linkDst.show();
 		Dataset<Row> revDst = dfEdges.filter("type='revision'").select("dst");
-		revDst.show();
 		Dataset<Row> verifiedNodes = minorNodes.except(linkDst); //delete link destinations and start nodes out of minor nodes
 		System.out.println("verified.");
-		verifiedNodes.show();
-		verifiedNodes.intersect(revDst);
-		verifiedNodes.show();
+		verifiedNodes.intersect(revDst); //filter nodes which have no revision inlink (first nodes)
 		
-//		verifiedNodes = verifiedNodes.except(dfNodes.select("id").except(revDst)); //filter nodes which have no revision inlink (first nodes)
 		return verifiedNodes;
 	}
 	
@@ -216,12 +196,9 @@ public class GraphBuilder implements Serializable {
 
 		for(StringPair s : filters) {
 			mergedNodes.addAll(getMinorNodes(s.getS1(), s.getS2()));
-//			mergedNodes.cache();
 		}
 		Dataset<Row> minorNodes = spark.createDataFrame(mergedNodes, schema);
-		minorNodes.show();
 		minorNodes = minorNodes.distinct();
-		minorNodes.show();
 		minorNodes = verifyMinorNodes(minorNodes);
 		return minorNodes;
 	}
@@ -240,10 +217,7 @@ public class GraphBuilder implements Serializable {
 			df = spark.createDataFrame(nodes, IntNode.class);
 			minor = df.filter("value<"+threshold);
 		}
-		minor.show();
 		minor = minor.drop("value");
-		minor.show();
-//		return minor.javaRDD().map(r -> new Node(r.getString(0))).collect();
 		return minor.collectAsList();
 	}
 	
