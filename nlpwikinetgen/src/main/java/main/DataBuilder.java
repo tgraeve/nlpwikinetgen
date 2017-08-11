@@ -70,8 +70,6 @@ public class DataBuilder extends Task{
 	private Iterable<Page> pages;
 	private Iterable<StringPair> sPages;
 	
-	NetworkBuilder revNet = null;
-	DumpIndexer indexer = null;
 	IndexWriter indexWriter = null;
 	long pageAmount;
 	long counter = 0;
@@ -205,6 +203,8 @@ public class DataBuilder extends Task{
 	}
 		
 	private void executePage(Page page, ExecutorService ex) {
+		NetworkBuilder revNet = null;
+		DumpIndexer indexer = null;
 		filters = new ArrayList<GraphDataAnalyzer>();
 		if (buildGraph) {
 			revNet = new NetworkBuilder(wiki, revApi, pathToFolder);

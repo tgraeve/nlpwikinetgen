@@ -52,6 +52,7 @@ public class NetworkBuilder extends GraphDataAnalyzer {
 		if (prevId != null) {
 			// add basic edges between revisions of same page
 			edges.add(new Edge(prevId, revisionId, "revision"));
+			System.out.println("PageId: "+pageId+" + Revision: "+prevId+" to "+revisionId);
 		}
 		prevId = revisionId;
 		
@@ -70,6 +71,7 @@ public class NetworkBuilder extends GraphDataAnalyzer {
 		        				linkList.add(link.toLowerCase());
 		        				if (!pageId.equals(Integer.toString(targetPageId))) { //check if link is loop
 				        			edges.add(new Edge(Integer.toString(revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID()), revisionId, "link"));
+				        			System.out.println("PageId: "+pageId+" + Link: "+revApi.getRevision(targetPageId, ts.get(ts.size()-1)).getRevisionID()+" to "+revisionId);
 								}
 		        				else {
 		        					System.out.println("########## LOOP ###########");

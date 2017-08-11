@@ -1,7 +1,5 @@
 package info.collide.nlpwikinetgen.builder;
 
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
@@ -22,7 +20,8 @@ public class PageThread implements Runnable {
 	private DumpIndexer indexer;
 	private List<GraphDataAnalyzer> filter;
 	
-	final Lock lock = new ReentrantLock();
+	final Lock revLock = new ReentrantLock();
+	final Lock closeLock = new ReentrantLock();
 	
 	public PageThread(Page page, RevisionApi revApi, NetworkBuilder netBuilder, DumpIndexer indexer, List<GraphDataAnalyzer> filter) {
 		this.page = page;
@@ -77,6 +76,8 @@ public class PageThread implements Runnable {
         		String revisionId = Integer.toString(rev.getRevisionID());
         		String text = rev.getRevisionText();
         		
+        		revLock.lock();
+        		
         		if (netBuilder != null) {netBuilder.nextRevision(revisionId, text, t);}
         		if (indexer != null) {indexer.nextRevision(revisionId, text, t);}
         		
@@ -90,13 +91,14 @@ public class PageThread implements Runnable {
     					}
         			}
         		}
+        		revLock.unlock();
 			}
 		}
 		if (netBuilder != null) {netBuilder.close();}
 		if (indexer != null) {
-			lock.lock();
+			closeLock.lock();
 			indexer.close();
-			lock.unlock();
+			closeLock.unlock();
 		}
 		if (filter != null) {
 			for(GraphDataAnalyzer component : filter) {
