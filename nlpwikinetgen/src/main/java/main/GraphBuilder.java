@@ -17,6 +17,7 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import org.apache.spark.storage.StorageLevel;
 import org.apache.log4j.*;
 import org.graphframes.GraphFrame;
 import info.collide.nlpwikinetgen.helper.GMLWriter;
@@ -43,6 +44,7 @@ public class GraphBuilder implements Serializable {
 		spark = SparkSession.builder()
 				.appName("NLPWikiNetGen")
 				.master("local[*]")
+				.config("spark.sql.broadcastTimeout", 1800)
 				.config("spark.executor.memory", "8g")
 				.config("spark.driver.memory", "8g")
 				.config("spark_local_ip","127.0.0.1")
@@ -80,23 +82,24 @@ public class GraphBuilder implements Serializable {
 		if(filters.size()>0 || keyRev!=null) {
 			
 			Dataset<Row> minorNodeIds = getMergedMinorNodes(filters);
-			Dataset<Row> minorNodes = allNodes.join(minorNodeIds, allNodes.col("id").equalTo(minorNodeIds.col("id"))).drop(minorNodeIds.col("id"));
-			Dataset<Row> majorNodes = allNodes.except(minorNodes);
-			majorNodes.cache();
+//			Dataset<Row> minorNodes = allNodes.join(minorNodeIds, allNodes.col("id").equalTo(minorNodeIds.col("id"))).drop(minorNodeIds.col("id"));
+			Dataset<Row> majorNodes = allNodes.join(minorNodeIds, allNodes.col("id").equalTo(minorNodeIds.col("id")), "leftanti");
+			majorNodes.persist(StorageLevel.MEMORY_AND_DISK());
 			List<Node> majorNodeList = majorNodes.javaRDD().map(r -> new Node(r.getString(0),r.getString(1))).collect();
 			
 			//edges of type "link" where neither source nor destination are deleted can be kept
 			Dataset<Row> allLinks = dfEdges.filter("type = 'link'").join(dfNodes, dfEdges.col("src").equalTo(dfNodes.col("id"))).drop("id", "pageid").dropDuplicates(); //sort out links from foreign sites (where no nodes in data are existent)
 			allLinks.cache();
 			
+			System.out.println("Determine unaffected and affected links...");
 			Dataset<Row> unaffectedLinks = allLinks.join(majorNodes, allLinks.col("src").equalTo(majorNodes.col("id"))).drop("id","pageid");
-			unaffectedLinks = unaffectedLinks.join(majorNodes, unaffectedLinks.col("dst").equalTo(majorNodes.col("id"))).drop("id", "pageid");
-						
+			unaffectedLinks = unaffectedLinks.join(majorNodes, unaffectedLinks.col("dst").equalTo(majorNodes.col("id"))).drop("id", "pageid");		
 			Dataset<Row> affectedLinks = allLinks.except(unaffectedLinks);
-			System.out.println("reached");
 			
+			System.out.println("Start correcting link endges...");
 			Dataset<Row> corrLinkEdges = affectedLinks.join(allNodes, affectedLinks.col("src").equalTo(allNodes.col("id"))).drop("id");
-			System.out.println(corrLinkEdges.count());
+			corrLinkEdges.persist(StorageLevel.DISK_ONLY());
+			corrLinkEdges.count(); //to defeat timeouterrors due to long joins.
 			corrLinkEdges = corrLinkEdges.join(majorNodes, corrLinkEdges.col("pageId").equalTo(majorNodes.col("pageId"))).drop("pageId").drop(majorNodes.col("pageId"));
 			corrLinkEdges = corrLinkEdges.filter(x -> Integer.parseInt(x.getString(1)) > Integer.parseInt(x.getString(3))).withColumn("id", corrLinkEdges.col("id").cast("int"));
 			corrLinkEdges = corrLinkEdges.groupBy("dst","src","type").max("id");
@@ -113,6 +116,7 @@ public class GraphBuilder implements Serializable {
 			 * 
 			 */
 			
+			System.out.println("Start retrieving corrected revision endges...");
 			Dataset<Row> corrRevEdges = majorNodes.withColumnRenamed("id", "src")
 													.join(majorNodes, "pageId")
 													.filter(x -> Integer.parseInt(x.getString(1)) < Integer.parseInt(x.getString(2)))
@@ -126,13 +130,13 @@ public class GraphBuilder implements Serializable {
 			
 			corrRevEdges = spark.createDataFrame(corrRevEdges.javaRDD().map(x -> {return RowFactory.create(x.getString(0), x.getString(1), "revision");}),corrRevEdges.schema());
 			
-			
+			System.out.println("Start to merge new graphdata...");
 			List<Edge> allCorrEdges = new ArrayList<>();
 			allCorrEdges.addAll(corrRevEdges.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect());
 			allCorrEdges.addAll(unaffectedLinks.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect());
 			allCorrEdges.addAll(corrLinkEdges.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect());
 			
-			System.out.println("ALLE KNOTEN: "+allNodes.count()+" MINUS "+minorNodes.count()+" = "+majorNodes.count()+" KNOTEN UND "+allCorrEdges.size()+" KANTEN!");
+			System.out.println("ALLE KNOTEN: "+allNodes.count()+" MINUS "+minorNodeIds.count()+" = "+majorNodes.count()+" KNOTEN UND "+allCorrEdges.size()+" KANTEN!");
 			writer.writeFile(majorNodeList, allCorrEdges);
 		}
 		else {
