@@ -58,6 +58,7 @@ public class CharacterLengthDifference extends GraphDataAnalyzer {
 		int length = text.length();
 		int difference = Math.abs(prevLength-length);
 		nodes.add(new IntNode(revisionId, difference));
+		prevLength = length;
 	}
 
 	@Override
