@@ -80,10 +80,17 @@ public class GraphBuilder implements Serializable {
 		allNodes.cache();
 		
 		if(filters.size()>0 || keyRev!=null) {
+			Dataset<Row> majorNodes;
 			
-			Dataset<Row> minorNodeIds = getMergedMinorNodes(filters);
-//			Dataset<Row> minorNodes = allNodes.join(minorNodeIds, allNodes.col("id").equalTo(minorNodeIds.col("id"))).drop(minorNodeIds.col("id"));
-			Dataset<Row> majorNodes = allNodes.join(minorNodeIds, allNodes.col("id").equalTo(minorNodeIds.col("id")), "leftanti");
+			if(filters.size()>0) {
+				Dataset<Row> minorNodeIds = getMergedMinorNodes(filters);
+				majorNodes = allNodes.join(minorNodeIds, allNodes.col("id").equalTo(minorNodeIds.col("id")), "leftanti");
+			}
+			else {
+				majorNodes = allNodes;
+			}
+			
+			
 			majorNodes.persist(StorageLevel.MEMORY_AND_DISK());
 			List<Node> majorNodeList = majorNodes.javaRDD().map(r -> new Node(r.getString(0),r.getString(1))).collect();
 			
@@ -136,7 +143,7 @@ public class GraphBuilder implements Serializable {
 			allCorrEdges.addAll(unaffectedLinks.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect());
 			allCorrEdges.addAll(corrLinkEdges.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect());
 			
-			System.out.println("ALLE KNOTEN: "+allNodes.count()+" MINUS "+minorNodeIds.count()+" = "+majorNodes.count()+" KNOTEN UND "+allCorrEdges.size()+" KANTEN!");
+			System.out.println(" = "+majorNodes.count()+" KNOTEN UND "+allCorrEdges.size()+" KANTEN!");
 			writer.writeFile(majorNodeList, allCorrEdges);
 		}
 		else {
