@@ -127,12 +127,12 @@ public class DataBuilderController implements Initializable {
 				filter.add(new CharacterLengthDifference(revApi));
 			}
 			if (cbWordNGramJaccard.isSelected()) {
-				SimilarityCalculator simCal = new SimilarityCalculator(revApi, new WordNGramJaccardMeasure(Integer.parseInt(tfNJaccard.getText()), cbWordNGramJaccardLower.isSelected()));
+				SimilarityClassifier simCal = new SimilarityClassifier(revApi, new WordNGramJaccardMeasure(Integer.parseInt(tfNJaccard.getText()), cbWordNGramJaccardLower.isSelected()));
 				simCal.setDescr("Word_N_Gram_Jaccard-"+Integer.parseInt(tfNJaccard.getText())+"-"+cbWordNGramJaccardLower.isSelected());
 				filter.add(simCal);
 			}
 			if (cbWordNGramContainment.isSelected()) {
-				SimilarityCalculator simCal = new SimilarityCalculator(revApi, new WordNGramContainmentMeasure(Integer.parseInt(tfNContainment.getText())));
+				SimilarityClassifier simCal = new SimilarityClassifier(revApi, new WordNGramContainmentMeasure(Integer.parseInt(tfNContainment.getText())));
 				simCal.setDescr("Word_N_Gram_Containment-"+Integer.parseInt(tfNContainment.getText()));
 				filter.add(simCal);
 			}

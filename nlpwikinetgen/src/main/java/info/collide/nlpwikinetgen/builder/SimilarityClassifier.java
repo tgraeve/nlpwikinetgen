@@ -20,7 +20,7 @@ import info.collide.nlpwikinetgen.type.DoubleNode;
  * @author Tobias Graeve
  *
  */
-public class SimilarityCalculator extends WikidataAnalyzer {
+public class SimilarityClassifier extends WikidataAnalyzer {
 	
 	private List<DoubleNode> nodes;
 	private String prevText;
@@ -30,7 +30,7 @@ public class SimilarityCalculator extends WikidataAnalyzer {
 	 * @param revApi Instance of {@link RevisionApi}
 	 * @param tsm Instance of {@link TextSimilarityMeasure}
 	 */
-	public SimilarityCalculator(RevisionApi revApi, TextSimilarityMeasure tsm) {
+	public SimilarityClassifier(RevisionApi revApi, TextSimilarityMeasure tsm) {
 		super(revApi);
 		this.tsm = tsm;
 		nodes = new ArrayList<DoubleNode>();
@@ -42,7 +42,7 @@ public class SimilarityCalculator extends WikidataAnalyzer {
 	 * @param descr Unique identifier of module.
 	 * @param path Path to output folder.
 	 */
-	public SimilarityCalculator(RevisionApi revApi, TextSimilarityMeasure tsm, String descr, String path) {
+	public SimilarityClassifier(RevisionApi revApi, TextSimilarityMeasure tsm, String descr, String path) {
 		super(revApi);
 		this.tsm = tsm;
 		setDescr(descr);
@@ -87,7 +87,7 @@ public class SimilarityCalculator extends WikidataAnalyzer {
 	}
 
 	public Object clone() {
-		SimilarityCalculator sc = new SimilarityCalculator(revApi, tsm, getDescr(), getPath());
+		SimilarityClassifier sc = new SimilarityClassifier(revApi, tsm, getDescr(), getPath());
 		return sc;
 	}
 }
