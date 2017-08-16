@@ -18,12 +18,12 @@ public class PageThread implements Runnable {
 	private RevisionApi revApi;
 	private NetworkBuilder netBuilder;
 	private LuceneIndexer indexer;
-	private List<WikiDataAnalyzer> filter;
+	private List<WikidataAnalyzer> filter;
 	
 	final Lock revLock = new ReentrantLock();
 	final Lock closeLock = new ReentrantLock();
 	
-	public PageThread(Page page, RevisionApi revApi, NetworkBuilder netBuilder, LuceneIndexer indexer, List<WikiDataAnalyzer> filter) {
+	public PageThread(Page page, RevisionApi revApi, NetworkBuilder netBuilder, LuceneIndexer indexer, List<WikidataAnalyzer> filter) {
 		this.page = page;
 		this.revApi = revApi;
 		this.netBuilder = netBuilder;
@@ -47,7 +47,7 @@ public class PageThread implements Runnable {
 		if (indexer != null) {indexer.nextPage(sPageId, title);}
 		
 		if (filter != null) {
-			for(WikiDataAnalyzer component : filter) {
+			for(WikidataAnalyzer component : filter) {
 				try {
 					component.nextPage(sPageId, title);
 				} catch (Exception e) {
@@ -82,7 +82,7 @@ public class PageThread implements Runnable {
         		if (indexer != null) {indexer.nextRevision(revisionId, text, t);}
         		
         		if (filter != null) {
-        			for(WikiDataAnalyzer component : filter) {
+        			for(WikidataAnalyzer component : filter) {
         				try {
     						component.nextRevision(revisionId, text, t);
     					} catch (Exception e) {
@@ -101,7 +101,7 @@ public class PageThread implements Runnable {
 			closeLock.unlock();
 		}
 		if (filter != null) {
-			for(WikiDataAnalyzer component : filter) {
+			for(WikidataAnalyzer component : filter) {
 				component.close();
 			}
 		}

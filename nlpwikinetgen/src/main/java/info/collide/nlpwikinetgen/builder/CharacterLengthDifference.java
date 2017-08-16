@@ -19,7 +19,7 @@ import info.collide.nlpwikinetgen.type.IntNode;
  * 
  *
  */
-public class CharacterLengthDifference extends WikiDataAnalyzer {
+public class CharacterLengthDifference extends WikidataAnalyzer {
 	
 	List<IntNode> nodes;
 	int prevLength;

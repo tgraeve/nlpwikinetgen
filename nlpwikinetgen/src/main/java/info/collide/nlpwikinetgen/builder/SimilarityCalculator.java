@@ -20,7 +20,7 @@ import info.collide.nlpwikinetgen.type.DoubleNode;
  * @author Tobias Graeve
  *
  */
-public class SimilarityCalculator extends WikiDataAnalyzer {
+public class SimilarityCalculator extends WikidataAnalyzer {
 	
 	private List<DoubleNode> nodes;
 	private String prevText;

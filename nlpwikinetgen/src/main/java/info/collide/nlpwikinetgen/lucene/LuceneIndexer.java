@@ -20,9 +20,9 @@ import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
 import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
-import info.collide.nlpwikinetgen.builder.WikiDataAnalyzer;
+import info.collide.nlpwikinetgen.builder.WikidataAnalyzer;
 
-public class LuceneIndexer extends WikiDataAnalyzer {
+public class LuceneIndexer extends WikidataAnalyzer {
 	
 	DatabaseConfiguration dbConfig;
 	Wikipedia wiki;
