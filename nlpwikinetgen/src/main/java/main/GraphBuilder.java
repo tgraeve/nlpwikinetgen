@@ -96,7 +96,7 @@ public class GraphBuilder implements Serializable {
 			else {
 				majorNodes = allNodes;
 			}
-			System.out.println("major: "+majorNodes.count());
+			System.out.println("included pages: "+majorNodes.select("pageId").distinct().count()); //helper: counts includes pages.
 			
 			majorNodes.persist(StorageLevel.MEMORY_AND_DISK());
 			List<Node> majorNodeList = majorNodes.javaRDD().map(r -> new Node(r.getString(0),r.getString(1))).collect();
@@ -157,7 +157,9 @@ public class GraphBuilder implements Serializable {
 			writer.writeFile(majorNodeList, allCorrEdges);
 		}
 		else {
-			writer.writeFile(nodes, edges);
+			System.out.println("included pages: "+allNodes.select("pageId").distinct().count()); //helper: counts includes pages.
+			Dataset<Row> allLinks = dfEdges.filter("type = 'link'").join(allNodes, col("src").equalTo(allNodes.col("id"))).drop("id","pageId").join(allNodes, col("dst").equalTo(col("id"))).drop("id","pageId").dropDuplicates(); //sort out links from foreign sites (where no nodes in data are existent)
+			writer.writeFile(nodes, allLinks.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect());
 		}
 //		spark.stop();
 	}
