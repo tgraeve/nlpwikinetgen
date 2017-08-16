@@ -10,6 +10,9 @@ import java.util.List;
 
 
 import static org.apache.spark.sql.functions.*;
+
+import org.apache.spark.SparkConf;
+import org.apache.spark.SparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -30,7 +33,9 @@ import info.collide.nlpwikinetgen.type.Node;
 import info.collide.nlpwikinetgen.type.StringPair;
 
 public class GraphBuilder implements Serializable {
-	static SparkSession spark;
+	SparkSession spark;
+	SparkConf conf;
+	SparkContext sc;
 	List<Node> nodes;
 	List<Edge> edges;
 	Dataset<Row> dfNodes;
@@ -41,17 +46,16 @@ public class GraphBuilder implements Serializable {
 	public GraphBuilder(String pathToFolder) {
 		this.pathToFolder = pathToFolder;
 		
+//		conf = new SparkConf().setMaster("spark://ec2-52-28-199-131.eu-central-1.compute.amazonaws.com:7077").setAppName("NLPWikiNetGen");
+//		sc = new SparkContext(conf);
+		
 		spark = SparkSession.builder()
 				.appName("NLPWikiNetGen")
-				.master("local[*]")
+				.master("local[4]")
 				.config("spark.sql.broadcastTimeout", 1800)
-				.config("spark.executor.memory", "8g")
-				.config("spark.driver.memory", "8g")
-				.config("spark_local_ip","127.0.0.1")
 				.getOrCreate();
 		
 		//set runtime options
-		spark.sparkContext().setCheckpointDir(pathToFolder+"/cp-dir");
 		
 		Logger.getLogger("org").setLevel(Level.WARN);
 		
@@ -75,13 +79,16 @@ public class GraphBuilder implements Serializable {
 			allNodes = dfNodes;
 		}
 		else {
-			allNodes = dfNodes.filter(n -> !keyRev.contains(n.getString(0)));
+//			Dataset<Row> luceneNodes = spark.createDataFrame(keyRev, BasicNode.class);
+//			allNodes = dfNodes.join(luceneNodes);
+			
+			allNodes = dfNodes.filter(n -> keyRev.contains(n.getString(0)));
 		}
 		allNodes.cache();
 		
 		if(filters.size()>0 || keyRev!=null) {
 			Dataset<Row> majorNodes;
-			
+			System.out.println("allnodes: "+allNodes.count());
 			if(filters.size()>0) {
 				Dataset<Row> minorNodeIds = getMergedMinorNodes(filters);
 				majorNodes = allNodes.join(minorNodeIds, allNodes.col("id").equalTo(minorNodeIds.col("id")), "leftanti");
@@ -89,19 +96,22 @@ public class GraphBuilder implements Serializable {
 			else {
 				majorNodes = allNodes;
 			}
-			
+			System.out.println("major: "+majorNodes.count());
 			
 			majorNodes.persist(StorageLevel.MEMORY_AND_DISK());
 			List<Node> majorNodeList = majorNodes.javaRDD().map(r -> new Node(r.getString(0),r.getString(1))).collect();
 			
 			//edges of type "link" where neither source nor destination are deleted can be kept
-			Dataset<Row> allLinks = dfEdges.filter("type = 'link'").join(dfNodes, dfEdges.col("src").equalTo(dfNodes.col("id"))).drop("id", "pageid").dropDuplicates(); //sort out links from foreign sites (where no nodes in data are existent)
+			Dataset<Row> allLinks = dfEdges.filter("type = 'link'").join(allNodes, col("src").equalTo(allNodes.col("id"))).drop("id","pageId").join(allNodes, col("dst").equalTo(col("id"))).drop("id","pageId").dropDuplicates(); //sort out links from foreign sites (where no nodes in data are existent)
+			System.out.println(allLinks.count());
+
 			allLinks.cache();
 			
 			System.out.println("Determine unaffected and affected links...");
 			Dataset<Row> unaffectedLinks = allLinks.join(majorNodes, allLinks.col("src").equalTo(majorNodes.col("id"))).drop("id","pageid");
-			unaffectedLinks = unaffectedLinks.join(majorNodes, unaffectedLinks.col("dst").equalTo(majorNodes.col("id"))).drop("id", "pageid");		
+			System.out.println("Unaff: "+unaffectedLinks.count());
 			Dataset<Row> affectedLinks = allLinks.except(unaffectedLinks);
+			System.out.println("aff "+affectedLinks.count());
 			
 			System.out.println("Start correcting link endges...");
 			Dataset<Row> corrLinkEdges = affectedLinks.join(allNodes, affectedLinks.col("src").equalTo(allNodes.col("id"))).drop("id");
@@ -111,7 +121,7 @@ public class GraphBuilder implements Serializable {
 			corrLinkEdges = corrLinkEdges.filter(x -> Integer.parseInt(x.getString(1)) > Integer.parseInt(x.getString(3))).withColumn("id", corrLinkEdges.col("id").cast("int"));
 			corrLinkEdges = corrLinkEdges.groupBy("dst","src","type").max("id");
 			corrLinkEdges = corrLinkEdges.drop("src").withColumn("src", corrLinkEdges.col("max(id)").cast("string")).select("dst","src","type");
-
+			System.out.println(corrLinkEdges.count());
 			
 			/*
 			 * rebuilds revision edges for all remaining nodes
@@ -136,7 +146,7 @@ public class GraphBuilder implements Serializable {
 													.select("dst","src","type");
 			
 			corrRevEdges = spark.createDataFrame(corrRevEdges.javaRDD().map(x -> {return RowFactory.create(x.getString(0), x.getString(1), "revision");}),corrRevEdges.schema());
-			
+			System.out.println("corrrev: "+corrRevEdges.count());
 			System.out.println("Start to merge new graphdata...");
 			List<Edge> allCorrEdges = new ArrayList<>();
 			allCorrEdges.addAll(corrRevEdges.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect());
@@ -149,16 +159,15 @@ public class GraphBuilder implements Serializable {
 		else {
 			writer.writeFile(nodes, edges);
 		}
-		spark.stop();
+//		spark.stop();
 	}
 	
 	private Dataset<Row> verifyMinorNodes(Dataset<Row> minorNodes) {
 		Dataset<Row> linkDst = dfEdges.filter("type='link'").select("dst");
 		Dataset<Row> revDst = dfEdges.filter("type='revision'").select("dst");
 		Dataset<Row> verifiedNodes = minorNodes.except(linkDst); //delete link destinations and start nodes out of minor nodes
-		System.out.println("verified.");
 		verifiedNodes.intersect(revDst); //filter nodes which have no revision inlink (first nodes)
-		
+		System.out.println("Minor Nodes verified.");
 		return verifiedNodes;
 	}
 	

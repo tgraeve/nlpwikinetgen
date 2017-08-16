@@ -34,13 +34,12 @@ public class KeywordFilter {
 		ArrayList<String> revisions = new ArrayList<String>();
 		TotalHitCountCollector coll = new TotalHitCountCollector();
 		this.keywords = input.split(",");
-	   
+		
 		for (String string : keywords) {
 			Query q = new QueryParser("text", new WikiAnalyzer()).parse(string);
 			indexSearcher.search(q, coll);
 		
 			ScoreDoc[] hits = indexSearcher.search(q, reader.numDocs()).scoreDocs;
-			
 			for(int i = 0; i<hits.length; i++) {
 				int docId = hits[i].doc;
 				Document doc = indexSearcher.doc(docId);

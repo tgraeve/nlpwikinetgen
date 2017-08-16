@@ -228,7 +228,7 @@ public class DataBuilder extends Task{
 		ex.execute(new PageThread(page, revApi, revNet, indexer, filters));
 		
 		started++;
-		updateMessage("Started/All ("+started+"/"+pageAmount+")");
+		updateMessage("Iterating over "+started+" Revisions...");
 //		updateProgress(started, pageAmount);
 	}
 	
