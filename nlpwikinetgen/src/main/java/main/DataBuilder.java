@@ -35,7 +35,7 @@ import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import info.collide.nlpwikinetgen.builder.GraphDataAnalyzer;
 import info.collide.nlpwikinetgen.builder.NetworkBuilder;
 import info.collide.nlpwikinetgen.builder.PageThread;
-import info.collide.nlpwikinetgen.lucene.DumpIndexer;
+import info.collide.nlpwikinetgen.lucene.LuceneIndexer;
 import info.collide.nlpwikinetgen.lucene.WikiAnalyzer;
 import info.collide.nlpwikinetgen.type.BasicNode;
 import info.collide.nlpwikinetgen.type.Edge;
@@ -204,14 +204,14 @@ public class DataBuilder extends Task{
 		
 	private void executePage(Page page, ExecutorService ex) {
 		NetworkBuilder revNet = null;
-		DumpIndexer indexer = null;
+		LuceneIndexer indexer = null;
 		filters = new ArrayList<GraphDataAnalyzer>();
 		if (buildGraph) {
 			revNet = new NetworkBuilder(wiki, revApi, pathToFolder);
 		}
 		if (buildIndex) {
 			try {
-				indexer = new DumpIndexer(indexWriter, revApi, pathToFolder);
+				indexer = new LuceneIndexer(indexWriter, revApi, pathToFolder);
 			} catch (WikiApiException e) {
 				System.out.println("Failed indexing page "+page.getPageId()+".");
 				e.printStackTrace();

@@ -11,19 +11,19 @@ import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiTitleParsingException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.Revision;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
-import info.collide.nlpwikinetgen.lucene.DumpIndexer;
+import info.collide.nlpwikinetgen.lucene.LuceneIndexer;
 
 public class PageThread implements Runnable {
 	private Page page;
 	private RevisionApi revApi;
 	private NetworkBuilder netBuilder;
-	private DumpIndexer indexer;
+	private LuceneIndexer indexer;
 	private List<GraphDataAnalyzer> filter;
 	
 	final Lock revLock = new ReentrantLock();
 	final Lock closeLock = new ReentrantLock();
 	
-	public PageThread(Page page, RevisionApi revApi, NetworkBuilder netBuilder, DumpIndexer indexer, List<GraphDataAnalyzer> filter) {
+	public PageThread(Page page, RevisionApi revApi, NetworkBuilder netBuilder, LuceneIndexer indexer, List<GraphDataAnalyzer> filter) {
 		this.page = page;
 		this.revApi = revApi;
 		this.netBuilder = netBuilder;

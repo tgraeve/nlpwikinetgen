@@ -22,7 +22,7 @@ import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import info.collide.nlpwikinetgen.builder.GraphDataAnalyzer;
 
-public class DumpIndexer extends GraphDataAnalyzer {
+public class LuceneIndexer extends GraphDataAnalyzer {
 	
 	DatabaseConfiguration dbConfig;
 	Wikipedia wiki;
@@ -38,7 +38,7 @@ public class DumpIndexer extends GraphDataAnalyzer {
 	private String revisionId;
 	String descr;
 	
-	public DumpIndexer(RevisionApi revApi, String outputFolder) {
+	public LuceneIndexer(RevisionApi revApi, String outputFolder) {
 		super(revApi);
 		this.outputFolder = outputFolder;
 		
@@ -63,7 +63,7 @@ public class DumpIndexer extends GraphDataAnalyzer {
     	doc.add(article);
 	}
 	
-	public DumpIndexer(IndexWriter indexWriter, RevisionApi revApi, String outputFolder) throws WikiApiException {
+	public LuceneIndexer(IndexWriter indexWriter, RevisionApi revApi, String outputFolder) throws WikiApiException {
 		super(revApi);
 		this.indexWriter = indexWriter;
 		this.outputFolder = outputFolder;
