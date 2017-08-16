@@ -18,14 +18,14 @@ import info.collide.nlpwikinetgen.type.BoolNode;
  * @author Tobias Graeve
  *
  */
-public class WikiMinorFlag extends WikidataAnalyzer {
+public class WikiMinorClassifier extends WikidataAnalyzer {
 
 	private List<BoolNode> nodes;
 	
 	/**
 	 * @param revApi Instance of {@link RevisionApi}.
 	 */
-	public WikiMinorFlag(RevisionApi revApi) {
+	public WikiMinorClassifier(RevisionApi revApi) {
 		super(revApi);
 		setDescr("Wiki_Minor_Flag");
 		this.nodes = new ArrayList<BoolNode>();
@@ -52,7 +52,7 @@ public class WikiMinorFlag extends WikidataAnalyzer {
 	
 	@Override
 	public Object clone() {
-		WikiMinorFlag wmf = new WikiMinorFlag(revApi);
+		WikiMinorClassifier wmf = new WikiMinorClassifier(revApi);
 		return wmf;
 	}
 }

@@ -121,7 +121,7 @@ public class DataBuilderController implements Initializable {
 			RevisionApi revApi = db.getRevisionAPI();
 			
 			if (cbWikiMinorFlag.isSelected()) {
-				filter.add(new WikiMinorFlag(revApi));
+				filter.add(new WikiMinorClassifier(revApi));
 			}
 			if (cbCharLengthDiff.isSelected()) {
 				filter.add(new CharacterLengthDifference(revApi));
