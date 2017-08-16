@@ -101,17 +101,13 @@ public class GraphBuilder implements Serializable {
 			majorNodes.persist(StorageLevel.MEMORY_AND_DISK());
 			List<Node> majorNodeList = majorNodes.javaRDD().map(r -> new Node(r.getString(0),r.getString(1))).collect();
 			
-			//edges of type "link" where neither source nor destination are deleted can be kept
-			Dataset<Row> allLinks = dfEdges.filter("type = 'link'").join(allNodes, col("src").equalTo(allNodes.col("id"))).drop("id","pageId").join(allNodes, col("dst").equalTo(col("id"))).drop("id","pageId").dropDuplicates(); //sort out links from foreign sites (where no nodes in data are existent)
-			System.out.println(allLinks.count());
-
-			allLinks.cache();
+			Dataset<Row> allLinks = dfEdges.filter("type = 'link'").join(allNodes, dfEdges.col("src").equalTo(allNodes.col("id"))).drop("id","pageId");
+			allLinks = allLinks.join(allNodes, allLinks.col("dst").equalTo(allNodes.col("id"))).drop("id","pageId").dropDuplicates(); //sorts out links from foreign sites (where no nodes in data are existent)
 			
+			//edges of type "link" where neither source nor destination are deleted can be kept
 			System.out.println("Determine unaffected and affected links...");
 			Dataset<Row> unaffectedLinks = allLinks.join(majorNodes, allLinks.col("src").equalTo(majorNodes.col("id"))).drop("id","pageid");
-			System.out.println("Unaff: "+unaffectedLinks.count());
 			Dataset<Row> affectedLinks = allLinks.except(unaffectedLinks);
-			System.out.println("aff "+affectedLinks.count());
 			
 			System.out.println("Start correcting link endges...");
 			Dataset<Row> corrLinkEdges = affectedLinks.join(allNodes, affectedLinks.col("src").equalTo(allNodes.col("id"))).drop("id");
@@ -121,7 +117,6 @@ public class GraphBuilder implements Serializable {
 			corrLinkEdges = corrLinkEdges.filter(x -> Integer.parseInt(x.getString(1)) > Integer.parseInt(x.getString(3))).withColumn("id", corrLinkEdges.col("id").cast("int"));
 			corrLinkEdges = corrLinkEdges.groupBy("dst","src","type").max("id");
 			corrLinkEdges = corrLinkEdges.drop("src").withColumn("src", corrLinkEdges.col("max(id)").cast("string")).select("dst","src","type");
-			System.out.println(corrLinkEdges.count());
 			
 			/*
 			 * rebuilds revision edges for all remaining nodes
@@ -146,7 +141,6 @@ public class GraphBuilder implements Serializable {
 													.select("dst","src","type");
 			
 			corrRevEdges = spark.createDataFrame(corrRevEdges.javaRDD().map(x -> {return RowFactory.create(x.getString(0), x.getString(1), "revision");}),corrRevEdges.schema());
-			System.out.println("corrrev: "+corrRevEdges.count());
 			System.out.println("Start to merge new graphdata...");
 			List<Edge> allCorrEdges = new ArrayList<>();
 			allCorrEdges.addAll(corrRevEdges.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect());
@@ -158,8 +152,8 @@ public class GraphBuilder implements Serializable {
 		}
 		else {
 			System.out.println("included pages: "+allNodes.select("pageId").distinct().count()); //helper: counts includes pages.
-			Dataset<Row> allLinks = dfEdges.filter("type = 'link'").join(allNodes, col("src").equalTo(allNodes.col("id"))).drop("id","pageId").join(allNodes, col("dst").equalTo(col("id"))).drop("id","pageId").dropDuplicates(); //sort out links from foreign sites (where no nodes in data are existent)
-			writer.writeFile(nodes, allLinks.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect());
+			Dataset<Row> corrEdges = dfEdges.join(allNodes, col("src").equalTo(allNodes.col("id"))).drop("id","pageId").join(allNodes, col("dst").equalTo(col("id"))).drop("id","pageId").dropDuplicates(); //sort out links from foreign sites (where no nodes in data are existent)
+			writer.writeFile(nodes, corrEdges.javaRDD().map(r -> new Edge(r.getString(1), r.getString(0),r.getString(2))).collect());
 		}
 //		spark.stop();
 	}
