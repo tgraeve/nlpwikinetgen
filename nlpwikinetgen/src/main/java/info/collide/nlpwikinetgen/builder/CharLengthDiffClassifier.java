@@ -19,7 +19,7 @@ import info.collide.nlpwikinetgen.type.IntNode;
  * 
  *
  */
-public class CharacterLengthDifference extends WikidataAnalyzer {
+public class CharLengthDiffClassifier extends WikidataAnalyzer {
 	
 	List<IntNode> nodes;
 	int prevLength;
@@ -28,7 +28,7 @@ public class CharacterLengthDifference extends WikidataAnalyzer {
 	 * 
 	 * @param revApi Instance of {@link RevisionApi} 
 	 */
-	public CharacterLengthDifference(RevisionApi revApi) {
+	public CharLengthDiffClassifier(RevisionApi revApi) {
 		super(revApi);
 		setDescr("Character_Length_Difference");
 		this.nodes = new ArrayList<IntNode>();
@@ -40,7 +40,7 @@ public class CharacterLengthDifference extends WikidataAnalyzer {
 	 * @param descr Unique identifier of module.
 	 * @param path Path to output folder.
 	 */
-	public CharacterLengthDifference(RevisionApi revApi, String descr, String path) {
+	public CharLengthDiffClassifier(RevisionApi revApi, String descr, String path) {
 		super(revApi);
 		setDescr(descr);
 		setPath(path);
@@ -78,7 +78,7 @@ public class CharacterLengthDifference extends WikidataAnalyzer {
 	
 	@Override
 	public Object clone() {
-		CharacterLengthDifference cld = new CharacterLengthDifference(revApi, getDescr(), getPath());
+		CharLengthDiffClassifier cld = new CharLengthDiffClassifier(revApi, getDescr(), getPath());
 		return cld;
 	}
 }

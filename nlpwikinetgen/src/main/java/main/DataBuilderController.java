@@ -124,7 +124,7 @@ public class DataBuilderController implements Initializable {
 				filter.add(new WikiMinorClassifier(revApi));
 			}
 			if (cbCharLengthDiff.isSelected()) {
-				filter.add(new CharacterLengthDifference(revApi));
+				filter.add(new CharLengthDiffClassifier(revApi));
 			}
 			if (cbWordNGramJaccard.isSelected()) {
 				SimilarityClassifier simCal = new SimilarityClassifier(revApi, new WordNGramJaccardMeasure(Integer.parseInt(tfNJaccard.getText()), cbWordNGramJaccardLower.isSelected()));
