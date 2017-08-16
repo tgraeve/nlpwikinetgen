@@ -18,7 +18,7 @@ import info.collide.nlpwikinetgen.type.BoolNode;
  * @author Tobias Graeve
  *
  */
-public class WikiMinorFlag extends GraphDataAnalyzer {
+public class WikiMinorFlag extends WikiDataAnalyzer {
 
 	private List<BoolNode> nodes;
 	

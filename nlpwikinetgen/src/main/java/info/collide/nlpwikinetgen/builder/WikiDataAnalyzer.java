@@ -14,7 +14,7 @@ import main.DataBuilder;
  * @author Tobias Graeve
  *
  */
-abstract public class GraphDataAnalyzer {
+abstract public class WikiDataAnalyzer {
 	
 	protected RevisionApi revApi;
 	private String path;
@@ -26,7 +26,7 @@ abstract public class GraphDataAnalyzer {
 	 * 
 	 * @param revApi Instance of {@link RevisionApi}.
 	 */
-	public GraphDataAnalyzer(RevisionApi revApi) {
+	public WikiDataAnalyzer(RevisionApi revApi) {
 		this.revApi = revApi;
 	}
 	

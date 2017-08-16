@@ -32,7 +32,7 @@ import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiInitializationException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
-import info.collide.nlpwikinetgen.builder.GraphDataAnalyzer;
+import info.collide.nlpwikinetgen.builder.WikiDataAnalyzer;
 import info.collide.nlpwikinetgen.builder.NetworkBuilder;
 import info.collide.nlpwikinetgen.builder.PageThread;
 import info.collide.nlpwikinetgen.lucene.LuceneIndexer;
@@ -58,8 +58,8 @@ public class DataBuilder extends Task{
 	private String category;
 	private boolean buildGraph;
 	private boolean buildIndex;
-	private List<GraphDataAnalyzer> filter;
-	private List<GraphDataAnalyzer> filters;
+	private List<WikiDataAnalyzer> filter;
+	private List<WikiDataAnalyzer> filters;
 
 
 	private List<String> folderMeta;
@@ -184,7 +184,7 @@ public class DataBuilder extends Task{
 			System.out.println("IndexWriter closed.");
 		}
 		if (filter != null) {
-			for(GraphDataAnalyzer f : filter) {
+			for(WikiDataAnalyzer f : filter) {
 				String des = f.getDescr();
 				System.out.println("Started to concat single filter files of "+des);
 				List<BasicNode> finalNodes = new ArrayList<BasicNode>();
@@ -205,7 +205,7 @@ public class DataBuilder extends Task{
 	private void executePage(Page page, ExecutorService ex) {
 		NetworkBuilder revNet = null;
 		LuceneIndexer indexer = null;
-		filters = new ArrayList<GraphDataAnalyzer>();
+		filters = new ArrayList<WikiDataAnalyzer>();
 		if (buildGraph) {
 			revNet = new NetworkBuilder(wiki, revApi, pathToFolder);
 		}
@@ -218,8 +218,8 @@ public class DataBuilder extends Task{
 			}
 		}
 		if(filter != null) {
-			for(GraphDataAnalyzer f : filter) {
-				GraphDataAnalyzer cloned = (GraphDataAnalyzer) f.clone();
+			for(WikiDataAnalyzer f : filter) {
+				WikiDataAnalyzer cloned = (WikiDataAnalyzer) f.clone();
 				cloned.setPath(pathToFolder);
 				filters.add(cloned);
 			}
@@ -358,11 +358,11 @@ public class DataBuilder extends Task{
 		return revApi;
 	}
 	
-	public List<GraphDataAnalyzer> getFilter() {
+	public List<WikiDataAnalyzer> getFilter() {
 		return filter;
 	}
 
-	public void setFilter(List<GraphDataAnalyzer> filter) {
+	public void setFilter(List<WikiDataAnalyzer> filter) {
 		this.filter = filter;
 	}
 }
