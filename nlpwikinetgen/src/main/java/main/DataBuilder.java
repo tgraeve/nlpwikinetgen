@@ -71,7 +71,6 @@ public class DataBuilder extends Task{
 	private Iterable<StringPair> sPages;
 	
 	IndexWriter indexWriter = null;
-	long pageAmount;
 	long counter = 0;
 	long started = 0;
 	
@@ -113,18 +112,6 @@ public class DataBuilder extends Task{
 		}
 	}
 	
-	@Deprecated
-	private HashSet<Page> getAllPages(Category cat) throws WikiApiException {
-		HashSet<Page> p = new HashSet<Page>();
-		p.addAll(cat.getArticles());
-		for(Category c : cat.getDescendants()) {
-			System.out.println(c.getTitle());
-			c.getArticles().forEach(page -> p.add(page));
-			p.addAll(c.getArticles());
-		}
-		return p;
-	}
-	
 	@Override
 	protected Object call() throws Exception {
 		updateMessage("Start generating...");
@@ -133,7 +120,6 @@ public class DataBuilder extends Task{
 		
 		if (wholeWiki) {
 			pages = wiki.getArticles();
-			pageAmount = wiki.getMetaData().getNumberOfPages()-wiki.getMetaData().getNumberOfDisambiguationPages()-wiki.getMetaData().getNumberOfRedirectPages();
 			for(Page page : pages) {
 				executePage(page, ex);
 			}
@@ -144,21 +130,6 @@ public class DataBuilder extends Task{
 				c.getArticles().forEach(page -> executePage(page, ex));
 			}
 		}
-		
-//		for (Page page : pages) {
-//			if (buildGraph) {
-//				revNet = new NetworkBuilder(wiki, revApi, pathToFolder);
-//			}
-//			if (buildIndex) {
-//				indexer = new DumpIndexer(indexWriter, revApi, pathToFolder);
-//			}
-//			
-//			ex.execute(new PageThread(page, revApi, revNet, indexer, filter));
-//			
-//			started++;
-//			updateMessage("Started/All ("+started+"/"+pageAmount+")");
-////			updateProgress(started, pageAmount);
-//		}
 
 		ex.shutdown();
 		
@@ -211,7 +182,7 @@ public class DataBuilder extends Task{
 		}
 		if (buildIndex) {
 			try {
-				indexer = new LuceneIndexer(indexWriter, revApi, pathToFolder);
+				indexer = new LuceneIndexer(indexWriter, revApi);
 			} catch (WikiApiException e) {
 				System.out.println("Failed indexing page "+page.getPageId()+".");
 				e.printStackTrace();
