@@ -27,5 +27,4 @@ public class WikiAnalyzer extends Analyzer {
 	     filter = new LengthFilter(filter, 0, IndexWriter.MAX_TERM_LENGTH/4);
 	     return new TokenStreamComponents(source, filter);
 	   }
-
 }
