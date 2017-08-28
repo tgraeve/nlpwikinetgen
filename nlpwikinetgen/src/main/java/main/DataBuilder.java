@@ -8,13 +8,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -40,7 +36,6 @@ import info.collide.nlpwikinetgen.lucene.WikiAnalyzer;
 import info.collide.nlpwikinetgen.type.BasicNode;
 import info.collide.nlpwikinetgen.type.Edge;
 import info.collide.nlpwikinetgen.type.Node;
-import info.collide.nlpwikinetgen.type.StringPair;
 import javafx.concurrent.Task;
 
 /**
@@ -60,15 +55,11 @@ public class DataBuilder extends Task{
 	private boolean buildIndex;
 	private List<WikidataAnalyzer> filter;
 	private List<WikidataAnalyzer> filters;
-
-
-	private List<String> folderMeta;
 	
 	private DatabaseConfiguration dbConfig;
 	private Wikipedia wiki;
 	private RevisionApi revApi;
 	private Iterable<Page> pages;
-	private Iterable<StringPair> sPages;
 	
 	IndexWriter indexWriter = null;
 	long counter = 0;
@@ -85,16 +76,6 @@ public class DataBuilder extends Task{
 		dbConfig = getDatabaseConfig();
 		wiki = getWiki(dbConfig);
 		revApi = getRevisionAPI();
-				
-//		if (wholeWiki) {
-//			pages = wiki.getArticles();
-//			pageAmount = wiki.getMetaData().getNumberOfPages()-wiki.getMetaData().getNumberOfDisambiguationPages()-wiki.getMetaData().getNumberOfRedirectPages();
-//			
-//		} else {
-//			Category cat = wiki.getCategory(category);
-//			pages = getAllPages(cat);
-////			pageAmount = cat.get
-//		}
 		
 		if (buildIndex) {
 			//set lucene config
@@ -168,7 +149,6 @@ public class DataBuilder extends Task{
 				serializeFilter(finalNodes, des);
 			}
 		}
-		
 		updateMessage("Done.");
 		return null;
 	}
@@ -199,8 +179,7 @@ public class DataBuilder extends Task{
 		ex.execute(new PageThread(page, revApi, revNet, indexer, filters));
 		
 		started++;
-		updateMessage("Iterating over "+started+" Revisions...");
-//		updateProgress(started, pageAmount);
+		updateMessage("Iterating over "+started+" Pages...");
 	}
 	
 	private ArrayList<Node> deserializeNodes(String pathToFolder) {
