@@ -16,14 +16,14 @@ import info.collide.nlpwikinetgen.lucene.LuceneIndexer;
 public class PageThread implements Runnable {
 	private Page page;
 	private RevisionApi revApi;
-	private NetworkBuilder netBuilder;
+	private GraphBuilder netBuilder;
 	private LuceneIndexer indexer;
 	private List<WikidataAnalyzer> filter;
 	
 	final Lock revLock = new ReentrantLock();
 	final Lock closeLock = new ReentrantLock();
 	
-	public PageThread(Page page, RevisionApi revApi, NetworkBuilder netBuilder, LuceneIndexer indexer, List<WikidataAnalyzer> filter) {
+	public PageThread(Page page, RevisionApi revApi, GraphBuilder netBuilder, LuceneIndexer indexer, List<WikidataAnalyzer> filter) {
 		this.page = page;
 		this.revApi = revApi;
 		this.netBuilder = netBuilder;

@@ -17,7 +17,7 @@ import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import info.collide.nlpwikinetgen.type.Edge;
 import info.collide.nlpwikinetgen.type.Node;
 
-public class NetworkBuilder extends WikidataAnalyzer {
+public class GraphBuilder extends WikidataAnalyzer {
 	private Wikipedia wiki;
 	
 	private String pageId;
@@ -27,7 +27,7 @@ public class NetworkBuilder extends WikidataAnalyzer {
 	List<Edge> edges;
 	List<String> linkList;
 	
-	public NetworkBuilder(Wikipedia wiki, RevisionApi revApi, String path) {
+	public GraphBuilder(Wikipedia wiki, RevisionApi revApi, String path) {
 		super(revApi);
 		this.wiki = wiki;
 		setPath(path);

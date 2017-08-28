@@ -29,7 +29,7 @@ import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiInitializationException;
 import de.tudarmstadt.ukp.wikipedia.revisionmachine.api.RevisionApi;
 import info.collide.nlpwikinetgen.builder.WikidataAnalyzer;
-import info.collide.nlpwikinetgen.builder.NetworkBuilder;
+import info.collide.nlpwikinetgen.builder.GraphBuilder;
 import info.collide.nlpwikinetgen.builder.PageThread;
 import info.collide.nlpwikinetgen.lucene.LuceneIndexer;
 import info.collide.nlpwikinetgen.lucene.WikiAnalyzer;
@@ -154,11 +154,11 @@ public class DataBuilder extends Task{
 	}
 		
 	private void executePage(Page page, ExecutorService ex) {
-		NetworkBuilder revNet = null;
+		GraphBuilder revNet = null;
 		LuceneIndexer indexer = null;
 		filters = new ArrayList<WikidataAnalyzer>();
 		if (buildGraph) {
-			revNet = new NetworkBuilder(wiki, revApi, pathToFolder);
+			revNet = new GraphBuilder(wiki, revApi, pathToFolder);
 		}
 		if (buildIndex) {
 			try {
