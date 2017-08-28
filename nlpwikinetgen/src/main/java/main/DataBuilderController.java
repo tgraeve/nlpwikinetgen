@@ -40,7 +40,7 @@ import info.collide.nlpwikinetgen.type.StringPair;
 public class DataBuilderController implements Initializable {
 	
 	private DataBuilder db;
-	private GraphBuilder gb;
+	private GraphFilter gb;
 	private ObservableList<Node> paramPanes;
 	
 	@FXML
@@ -287,7 +287,7 @@ public class DataBuilderController implements Initializable {
 	
 	public void filterGraph(Event e) throws IOException, ParseException {
 		if(gb==null) {
-			gb = new GraphBuilder(tfOutputFolderGB.getText());
+			gb = new GraphFilter(tfOutputFolderGB.getText());
 		}
 		
 		List<StringPair> enabledFilters = new ArrayList<StringPair>();

@@ -32,7 +32,7 @@ import info.collide.nlpwikinetgen.type.IntNode;
 import info.collide.nlpwikinetgen.type.Node;
 import info.collide.nlpwikinetgen.type.StringPair;
 
-public class GraphBuilder implements Serializable {
+public class GraphFilter implements Serializable {
 	SparkSession spark;
 	SparkConf conf;
 	SparkContext sc;
@@ -43,7 +43,7 @@ public class GraphBuilder implements Serializable {
 	static GraphFrame gf;
 	public String pathToFolder;
 	
-	public GraphBuilder(String pathToFolder) {
+	public GraphFilter(String pathToFolder) {
 		this.pathToFolder = pathToFolder;
 		
 //		conf = new SparkConf().setMaster("spark://ec2-52-28-199-131.eu-central-1.compute.amazonaws.com:7077").setAppName("NLPWikiNetGen");
