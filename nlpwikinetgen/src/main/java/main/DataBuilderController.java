@@ -153,19 +153,19 @@ public class DataBuilderController implements Initializable {
 	public void initialize(URL location, ResourceBundle resources) {
 		TreeItem<String> root = new TreeItem<> ("Root");
 		
-		TreeItem<String> simpleFilter = new TreeItem<> ("Simple Classifier");
+		TreeItem<String> simpleClassifier = new TreeItem<> ("Simple Classifier");
 			TreeItem<String> wikiMinorFlag = new TreeItem<> ("Wiki Minor Flag");
 			TreeItem<String> charLengthDiff = new TreeItem<> ("Character Length Difference");
 
 			
-		TreeItem<String> similarityFilter = new TreeItem<> ("Similarity Classifier");
+		TreeItem<String> similarityClassifier = new TreeItem<> ("Similarity Classifier");
 			TreeItem<String> nGram = new TreeItem<> ("n-gram");
 				TreeItem<String> wordNGramJaccard = new TreeItem<> ("Word N-Gram Jaccard");
 				TreeItem<String> wordNGramContainment = new TreeItem<> ("Word N-Gram Containment");
 	
-		root.getChildren().addAll(simpleFilter, similarityFilter);
-			simpleFilter.getChildren().addAll(wikiMinorFlag, charLengthDiff);
-			similarityFilter.getChildren().addAll(nGram);
+		root.getChildren().addAll(simpleClassifier, similarityClassifier);
+			simpleClassifier.getChildren().addAll(wikiMinorFlag, charLengthDiff);
+			similarityClassifier.getChildren().addAll(nGram);
 				nGram.getChildren().addAll(wordNGramJaccard, wordNGramContainment);
 		
 		tvOptions.setRoot(root);

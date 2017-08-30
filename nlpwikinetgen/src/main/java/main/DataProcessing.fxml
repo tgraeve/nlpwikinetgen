@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import main.*?>
 <?import javafx.scene.text.*?>
 <?import javafx.geometry.*?>
 <?import java.lang.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.VBox?>
+<?import main.SimilarityTextField?>
 
 <TabPane prefHeight="500.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.DataBuilderController">
    <tabs>
@@ -46,12 +48,12 @@
                                     <Tooltip text="Select an output folder to store graph and annotation data" />
                                  </tooltip>
                               </Label>
-                              <TextField fx:id="tfOutputFolderDB" HBox.hgrow="ALWAYS">
+                              <TextField fx:id="tfOutputFolderDB" onAction="#loadOutputFolderDB" HBox.hgrow="ALWAYS">
                                  <HBox.margin>
                                     <Insets right="10.0" />
                                  </HBox.margin>
                               </TextField>
-                              <Button fx:id="btnOutputFolder" mnemonicParsing="false" onAction="#loadOutputFolder" text="Choose" />
+                              <Button fx:id="btnOutputFolder" mnemonicParsing="false" onAction="#loadOutputFolderDB" text="Choose" />
                            </children>
                            <padding>
                               <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -102,14 +104,138 @@
                     <items>
                         <ScrollPane prefHeight="200.0">
                            <content>
-                              <TreeView fx:id="tvOptions" onContextMenuRequested="#tvSelection" onKeyReleased="#tvSelection" onMouseClicked="#tvSelection" prefHeight="237.0" prefWidth="300.0" />
+                              <TreeView fx:id="tvOptions" onContextMenuRequested="#tvSelectionDB" onKeyReleased="#tvSelectionDB" onMouseClicked="#tvSelectionDB" prefHeight="237.0" prefWidth="300.0" />
                            </content>
                         </ScrollPane>
-                        <Pane fx:id="paneParam" prefHeight="200.0" prefWidth="200.0">
+                        <StackPane fx:id="stackParam">
                            <children>
-                              <Text layoutX="120.0" layoutY="126.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
+                              <VBox fx:id="SimpleClassifier" layoutX="10.0" layoutY="10.0" visible="false">
+                                 <children>
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Simple classifier allow filtering to simple parameters, e.g. to meta data." wrappingWidth="200.0">
+                                       <VBox.margin>
+                                          <Insets bottom="20.0" />
+                                       </VBox.margin>
+                                    </Text>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                 </padding>
+                              </VBox>
+                              <VBox fx:id="WikiMinorFlag" visible="false">
+                                 <children>
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Wiki Minor Flag">
+                                       <VBox.margin>
+                                          <Insets bottom="20.0" />
+                                       </VBox.margin>
+                                    </Text>
+                                    <CheckBox fx:id="cbWikiMinorFlag" mnemonicParsing="false" text="Include" />
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                 </padding>
+                              </VBox>
+                              <VBox fx:id="CharacterLengthDifference" layoutX="10.0" layoutY="10.0" visible="false">
+                                 <children>
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Character Length Difference">
+                                       <VBox.margin>
+                                          <Insets bottom="20.0" />
+                                       </VBox.margin>
+                                    </Text>
+                                    <CheckBox fx:id="cbCharLengthDiff" mnemonicParsing="false" text="Include" />
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                 </padding>
+                              </VBox>
+                              <VBox fx:id="SimilarityClassifier" layoutX="10.0" layoutY="10.0" visible="false">
+                                 <children>
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Similarity classifier allow filtering to similarity measures with selectable boundaries." wrappingWidth="200.0">
+                                       <VBox.margin>
+                                          <Insets bottom="20.0" />
+                                       </VBox.margin>
+                                    </Text>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                 </padding>
+                              </VBox>
+                              <VBox fx:id="ngram" visible="false">
+                                 <children>
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="N-gram based similarity classifier." wrappingWidth="200.0">
+                                       <VBox.margin>
+                                          <Insets bottom="20.0" />
+                                       </VBox.margin>
+                                    </Text>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                 </padding>
+                              </VBox>
+                              <VBox fx:id="WordNGramJaccard" visible="false">
+                                 <children>
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Word N-Gram Jaccard Measure">
+                                       <VBox.margin>
+                                          <Insets bottom="20.0" />
+                                       </VBox.margin>
+                                    </Text>
+                                    <CheckBox fx:id="cbWordNGramJaccard" mnemonicParsing="false" text="Include">
+                                       <VBox.margin>
+                                          <Insets bottom="10.0" left="10.0" right="10.0" />
+                                       </VBox.margin>
+                                    </CheckBox>
+                                    <HBox alignment="CENTER_LEFT" prefHeight="56.0" prefWidth="278.0">
+                                       <children>
+                                          <Label text="n: ">
+                                             <HBox.margin>
+                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <NumberTextField fx:id="tfNJaccard" prefHeight="27.0" prefWidth="45.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox prefHeight="100.0" prefWidth="200.0">
+                                       <children>
+                                          <CheckBox fx:id="cbWordNGramJaccardLower" mnemonicParsing="false" text="to Lower Case">
+                                             <HBox.margin>
+                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                             </HBox.margin>
+                                          </CheckBox>
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                 </padding>
+                              </VBox>
+                              <VBox fx:id="WordNGramContainment" visible="false">
+                                 <children>
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Word N-Gram Containment Measure">
+                                       <VBox.margin>
+                                          <Insets bottom="20.0" />
+                                       </VBox.margin>
+                                    </Text>
+                                    <CheckBox fx:id="cbWordNGramContainment" mnemonicParsing="false" text="Include">
+                                       <VBox.margin>
+                                          <Insets bottom="10.0" left="10.0" right="10.0" />
+                                       </VBox.margin>
+                                    </CheckBox>
+                                    <HBox alignment="CENTER_LEFT" prefHeight="56.0" prefWidth="278.0">
+                                       <children>
+                                          <Label text="n: ">
+                                             <HBox.margin>
+                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <NumberTextField fx:id="tfNContainment" prefHeight="27.0" prefWidth="45.0" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                 </padding>
+                              </VBox>
                            </children>
-                        </Pane>
+                        </StackPane>
                     </items>
                   </SplitPane>
                   <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
@@ -117,11 +243,6 @@
                         <Button fx:id="btnGenData" mnemonicParsing="false" onAction="#generate" text="Generate Data">
                            <HBox.margin>
                               <Insets bottom="10.0" left="10.0" top="10.0" />
-                           </HBox.margin>
-                        </Button>
-                        <Button fx:id="btnClearFolder" mnemonicParsing="false" text="Clear Folder">
-                           <HBox.margin>
-                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                            </HBox.margin>
                         </Button>
                         <HBox alignment="CENTER_LEFT" prefHeight="47.0" prefWidth="360.0">
@@ -144,7 +265,7 @@
             </VBox>
          </content>
       </Tab>
-      <Tab closable="false" text="Graph Builder">
+      <Tab closable="false" text="Graph Filter">
          <content>
             <VBox prefHeight="200.0" prefWidth="100.0">
                <children>
@@ -160,18 +281,18 @@
                                     <Insets right="5.0" />
                                  </HBox.margin>
                               </Label>
-                              <TextField fx:id="tfOutputFolderGB" HBox.hgrow="ALWAYS">
+                              <TextField fx:id="tfOutputFolderGB" onAction="#loadOutputFolderGB" HBox.hgrow="ALWAYS">
                                  <HBox.margin>
                                     <Insets right="10.0" />
                                  </HBox.margin>
                               </TextField>
-                              <Button fx:id="btnDataFolder" mnemonicParsing="false" onAction="#loadOutputFolder" text="Choose" />
+                              <Button fx:id="btnDataFolder" mnemonicParsing="false" onAction="#loadOutputFolderGB" text="Choose" />
                            </children>
                            <padding>
                               <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                            </padding>
                         </HBox>
-                        <HBox alignment="CENTER_LEFT" prefHeight="0.0" prefWidth="600.0">
+                        <HBox alignment="CENTER_LEFT" prefHeight="212.0" prefWidth="600.0">
                            <children>
                               <Label text="Existing Data: " />
                               <Text fx:id="tExData" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="490.21875" />
@@ -182,9 +303,118 @@
                         </HBox>
                      </children>
                   </VBox>
+                  <SplitPane dividerPositions="0.5" prefHeight="285.0" prefWidth="600.0">
+                     <items>
+                        <ScrollPane prefHeight="200.0">
+                           <content>
+                              <TreeView fx:id="tvExFilters" onContextMenuRequested="#tvSelectionGB" onKeyReleased="#tvSelectionGB" onMouseClicked="#tvSelectionGB" prefHeight="270.0" prefWidth="300.0" />
+                           </content>
+                        </ScrollPane>
+                        <StackPane fx:id="stackParamGB">
+                           <children>
+                              <VBox fx:id="WikiMinorFlagGB" visible="false">
+                                 <children>
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Wiki Minor Flag">
+                                       <VBox.margin>
+                                          <Insets bottom="20.0" />
+                                       </VBox.margin>
+                                    </Text>
+                                    <CheckBox fx:id="cbWikiMinorFlagGB" mnemonicParsing="false" text="Use" />
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                 </padding>
+                              </VBox>
+                              <VBox fx:id="CharacterLengthDifferenceGB" layoutX="10.0" layoutY="10.0" visible="false">
+                                 <children>
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Character Length Difference">
+                                       <VBox.margin>
+                                          <Insets bottom="20.0" />
+                                       </VBox.margin>
+                                    </Text>
+                                    <CheckBox fx:id="cbCharLengthDiffGB" mnemonicParsing="false" text="Use" />
+                                    <HBox alignment="BASELINE_LEFT" prefHeight="100.0" prefWidth="200.0">
+                                       <children>
+                                          <Label text="Minor if less: ">
+                                             <HBox.margin>
+                                                <Insets bottom="10.0" right="10.0" top="10.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <TextField fx:id="tfCharacterLengthDifference" prefHeight="27.0" prefWidth="131.0" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                 </padding>
+                              </VBox>
+                              <VBox fx:id="WordNGramJaccardGB" visible="false">
+                                 <children>
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Word N-Gram Jaccard Measure">
+                                       <VBox.margin>
+                                          <Insets bottom="20.0" />
+                                       </VBox.margin>
+                                    </Text>
+                                    <CheckBox fx:id="cbWordNGramJaccardGB" mnemonicParsing="false" text="Use">
+                                       <VBox.margin>
+                                          <Insets bottom="10.0" left="10.0" right="10.0" />
+                                       </VBox.margin>
+                                    </CheckBox>
+                                    <HBox alignment="CENTER_LEFT" prefHeight="56.0" prefWidth="278.0">
+                                       <children>
+                                          <Label text="Minor if greater than: ">
+                                             <HBox.margin>
+                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <SimilarityTextField fx:id="tfWordNGramJaccardGB" prefHeight="27.0" prefWidth="45.0" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                 </padding>
+                              </VBox>
+                              <VBox fx:id="WordNGramContainmentGB" visible="false">
+                                 <children>
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Word N-Gram Containment Measure">
+                                       <VBox.margin>
+                                          <Insets bottom="20.0" />
+                                       </VBox.margin>
+                                    </Text>
+                                    <CheckBox fx:id="cbWordNGramContainmentGB" mnemonicParsing="false" text="Use">
+                                       <VBox.margin>
+                                          <Insets bottom="10.0" left="10.0" right="10.0" />
+                                       </VBox.margin>
+                                    </CheckBox>
+                                    <HBox alignment="CENTER_LEFT" prefHeight="56.0" prefWidth="278.0">
+                                       <children>
+                                          <Label text="Minor if greater than: ">
+                                             <HBox.margin>
+                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <SimilarityTextField fx:id="tfWordNGramContainmentGB" prefHeight="27.0" prefWidth="45.0" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                 </padding>
+                              </VBox>
+                           </children>
+                        </StackPane>
+                     </items>
+                  </SplitPane>
+                  <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                     <children>
+                        <Label text="Keyword filter: " />
+                        <TextArea fx:id="taLucene" minHeight="14.0" prefHeight="14.0" prefWidth="481.0" promptText="Use comma to separate keywords." />
+                     </children>
+                  </HBox>
                   <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
                      <children>
-                        <Button alignment="CENTER" mnemonicParsing="false" text="Button">
+                        <Button fx:id="btnFilterGraph" alignment="CENTER" mnemonicParsing="false" onAction="#filterGraph" text="Filter Graph">
                            <HBox.margin>
                               <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                            </HBox.margin>

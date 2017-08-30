@@ -10,7 +10,7 @@ public class DataProcessing extends Application {
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		Parent root = FXMLLoader.load(getClass().getResource("/main/DataProcessing3.fxml"));
+		Parent root = FXMLLoader.load(getClass().getResource("/main/DataProcessing.fxml"));
 		Scene scene = new Scene(root);
 		primaryStage.setScene(scene);
 		primaryStage.show();
