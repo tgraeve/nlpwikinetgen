@@ -111,7 +111,7 @@
                            <children>
                               <VBox fx:id="SimpleClassifier" layoutX="10.0" layoutY="10.0" visible="false">
                                  <children>
-                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Simple classifier allow filtering to simple parameters, e.g. to meta data." wrappingWidth="200.0">
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Simple classifiers allow filtering for simple parameters, e.g. meta data." wrappingWidth="200.0">
                                        <VBox.margin>
                                           <Insets bottom="20.0" />
                                        </VBox.margin>
@@ -149,7 +149,7 @@
                               </VBox>
                               <VBox fx:id="SimilarityClassifier" layoutX="10.0" layoutY="10.0" visible="false">
                                  <children>
-                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Similarity classifier allow filtering to similarity measures with selectable boundaries." wrappingWidth="200.0">
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Similarity classifiers allow filtering for similarity measures with selectable boundaries." wrappingWidth="200.0">
                                        <VBox.margin>
                                           <Insets bottom="20.0" />
                                        </VBox.margin>
@@ -161,7 +161,7 @@
                               </VBox>
                               <VBox fx:id="ngram" visible="false">
                                  <children>
-                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="N-gram based similarity classifier." wrappingWidth="200.0">
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="N-gram based similarity classifiers." wrappingWidth="200.0">
                                        <VBox.margin>
                                           <Insets bottom="20.0" />
                                        </VBox.margin>
