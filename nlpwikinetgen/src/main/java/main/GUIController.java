@@ -37,7 +37,7 @@ import info.collide.nlpwikinetgen.builder.*;
 import info.collide.nlpwikinetgen.lucene.KeywordFilter;
 import info.collide.nlpwikinetgen.type.StringPair;
 
-public class DataBuilderController implements Initializable {
+public class GUIController implements Initializable {
 	
 	private DataBuilder db;
 	private GraphFilter gb;

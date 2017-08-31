@@ -12,6 +12,7 @@ public class DataProcessing extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		Parent root = FXMLLoader.load(getClass().getResource("/main/DataProcessing.fxml"));
 		Scene scene = new Scene(root);
+		primaryStage.setTitle("Graph Builder Tool");
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
